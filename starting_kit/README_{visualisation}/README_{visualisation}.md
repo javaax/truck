@@ -83,7 +83,7 @@ data = read_as_df(data_dir  + '/' + data_name)      # The data are loaded as a P
 
 
 ```python
-data.head().style.background_gradient(cmap='Blues')
+data.head() #.style.background_gradient(cmap='Blues')
 ```
 
 
