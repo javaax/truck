@@ -1,3 +1,4 @@
+
 <div>
 <h1>Solve Xporters traffic volume problem</h1>
 <em><font size="-2">Organisers : Alexis de Russ&eacute;, Florian Bertelli, Gaspard Donada--Vidal, Ghassen Chaabane, Moez Ezzeddine, Ziheng Li</font></em>
@@ -25,10 +26,6 @@ from sys import path
 import matplotlib.pyplot as plt
 import seaborn as sns
 import warnings
-
-import numpy as np
-from sklearn.tree import DecisionTreeClassifier
-
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 ```
@@ -58,32 +55,37 @@ We provide sample_data with the starting kit, but to prepare your submission, yo
 
 ```python
 from data_io import read_as_df
-data_dir = 'input_data'        # Change this to the directory where you put the input data
-#data_dir = './all_data'          # The sample_data directory should contain only a very small subset of the data
+#data_dir = 'sample_data'        # Change this to the directory where you put the input data
+data_dir = './input_data'          # The sample_data directory should contain only a very small subset of the data
 data_name = 'xporters'
 !ls $data_dir*
 ```
 
-    xporters_feat.name     xporters_test.data	xporters_valid.data
-    xporters_private.info  xporters_train.data
-    xporters_public.info   xporters_train.solution
+    xporters_feat.name      xporters_test.data      xporters_valid.data
+    xporters_private.info   xporters_train.data
+    xporters_public.info    xporters_train.solution
 
 
 For convenience, we load the data as a "pandas" data frame, so we can use "pandas" and "seaborn" built in functions to explore the data.
 
 
 ```python
-data = read_as_df(data_dir  + '/' + data_name)      # The data are loaded as a Pandas Data Frame
+data = read_as_df(data_dir  + '/' + data_name)                # The data are loaded as a Pandas Data Frame
 ```
 
-    Reading input_data/xporters_train from AutoML format
+    Reading ./input_data/xporters_train from AutoML format
     Number of examples = 38563
     Number of features = 59
 
 
 
 ```python
-data.head() #.style.background_gradient(cmap='Blues')
+
+```
+
+
+```python
+data.head()
 ```
 
 
@@ -260,7 +262,7 @@ data.head() #.style.background_gradient(cmap='Blues')
 
 
 ```python
-data.describe()
+data.describe() 
 ```
 
 
@@ -509,15 +511,8 @@ data.describe()
 
 
 ```python
-data.columns[1]
+
 ```
-
-
-
-
-    'temp'
-
-
 
 
 ```python
@@ -528,7 +523,7 @@ plt.show()
 ```
 
 
-![png](output_11_0.png)
+![png](output_12_0.png)
 
 
 
@@ -557,12 +552,12 @@ plt.show()
 ```
 
 
-![png](output_12_0.png)
+![png](output_13_0.png)
 
 
 
 ```python
-f = plt.figure(figsize=(20, 15))
+f = plt.figure(figsize=(19, 15))
 plt.matshow(data.corr(), fignum=f.number)
 plt.xticks(range(data.shape[1]), data.columns, fontsize=14, rotation=45)
 plt.yticks(range(data.shape[1]), data.columns, fontsize=14)
@@ -572,7 +567,7 @@ plt.title('Correlation Matrix', fontsize=16);
 ```
 
 
-![png](output_13_0.png)
+![png](output_14_0.png)
 
 
 
@@ -599,45 +594,44 @@ print (data.corr()['target'].sort_values(ascending=False)[:10], '\n')
 
 
 ```python
+
+```
+
+
+```python
 a = list(most_important_features.index)
 sns.pairplot(data,height= 5, x_vars = a , y_vars = 'target')
 plt.show()
 ```
 
 
-![png](output_15_0.png)
+![png](output_17_0.png)
 
 
-
-```python
-sns.pairplot(data,height= 5, x_vars = a , y_vars = 'target',kind = 'reg')
-plt.show()
-```
-
-
-![png](output_16_0.png)
-
-
-<div>
-<h1>Step 2: Building a predictive model</h1>
-</div>
-
-<div>
-    <h2>Loading data with DataManager</h2>
-    <p>
-We reload the data with the AutoML DataManager class because this is more convenient:
-   <br>     <span style="color:red"> Keep this, it illustrates how data in AutoML formal are loaded by the ingestion program </span>
-</div>
+<h3>ci dessous est la partie que l'on modifie</h3>
 
 
 ```python
 from data_manager import DataManager
 D = DataManager(data_name, data_dir, replace_missing=True)
 print(D)
-#comment utiliser key de data in DataManager??
+from data_io import write
+from model import model
+# Uncomment the next line to show the code of the model
+# ??model 
+M = model()
+trained_model_name = model_dir + data_name
+# Uncomment the next line to re-load an already trained model
+M = M.load(trained_model_name)
+X_train = D.data['X_train']
+Y_train = D.data['Y_train']
+if not(M.is_trained) : M.fit(X_train, Y_train)                     
+Y_hat_train = M.predict(D.data['X_train']) # Optional, not really needed to test on taining examples
+Y_hat_valid = M.predict(D.data['X_valid'])
+Y_hat_test = M.predict(D.data['X_test'])
 ```
 
-    Info file found : /home/sylviepeng/projects/truck/starting_kit/input_data/xporters_public.info
+    Info file found : /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_public.info
     DataManager : xporters
     info:
     	usage = Sample dataset Traffic Volume data
@@ -667,58 +661,7 @@ print(D)
     feat_type:	array(59,)
     feat_idx:	array(0,)
     
-
-
-<div>
-    <h2>Training a predictive model</h2>
-    <p>
-We provide an example of predictive model (for classification or regression) in the `sample_code_submission/` directory. It is a quite stupid model: it makes constant predictions. Replace it with your own model.
-    </div>
-
-
-```python
-from data_io import write
-from model import model
-# Uncomment the next line to show the code of the model
-#??model 
-```
-
-<div>
-an instance of the model (run the constructor) and attempt to reload a previously saved version from `sample_code_submission/`:
-    
-</div>
-
-
-```python
-M = model()
-
-trained_model_name = model_dir + data_name
-# Uncomment the next line to re-load an already trained model
-M = M.load(trained_model_name)  
-
-```
-
     Model reloaded from: sample_code_submission/xporters_model.pickle
-
-
-<div>
-    Train the model (unless you reloaded a trained model) and make predictions. 
-</div>
-
-
-```python
-X_train = D.data['X_train']
-Y_train = D.data['Y_train']
-
-#if not(M.is_trained) :M.fit(X_train, Y_train)    
-M.fit(X_train, Y_train)  
-Y_hat_train = M.predict(D.data['X_train']) # Optional, not really needed to test on taining examples
-Y_hat_valid = M.predict(D.data['X_valid'])
-Y_hat_test = M.predict(D.data['X_test'])
-```
-
-    FIT: dim(X)= [38563, 59]
-    FIT: dim(y)= [38563, 1]
     PREDICT: dim(X)= [38563, 59]
     PREDICT: dim(y)= [38563, 1]
     PREDICT: dim(X)= [4820, 59]
@@ -726,10 +669,6 @@ Y_hat_test = M.predict(D.data['X_test'])
     PREDICT: dim(X)= [4820, 59]
     PREDICT: dim(y)= [4820, 1]
 
-
-<div>
-    <b> Save the trained model </b> (will be ready to reload next time around) and save the prediction results. IMPORTANT: if you save the trained model, it will be bundled with your sample code submission. Therefore your model will NOT be retrained on the challenge platform. Remove the pickle from the submission if you want the model to be retrained on the platform.
-</div>
 
 
 ```python
@@ -742,13 +681,124 @@ write(result_name + '_test.predict', Y_hat_test)
 !ls $result_name*
 ```
 
-    sample_result_submission/xporters_test.predict
-    sample_result_submission/xporters_train.predict
-    sample_result_submission/xporters_valid.predict
+    [31msample_result_submission/xporters_test.predict[m[m
+    [31msample_result_submission/xporters_train.predict[m[m
+    [31msample_result_submission/xporters_valid.predict[m[m
 
 
-##### TP4_visualisation
-point2 voir l'erreur de regression par classifier
+<div>
+    <span style="color:red"> Ici on veut afficher notre jeu de donées en cluster pour une meilleure visualisation et pour pouvoir sélectionner les données liées. On va utiliser l'algorithme de base qui est celui des K-moyennes</span>
+</div>
+
+
+
+
+```python
+from sklearn.cluster import KMeans
+from sklearn.datasets import make_blobs
+
+#exemple pour visualiser les clusters avec la méthode des K-moyennes
+plt.figure(figsize=(12, 12))
+
+n_samples = 38563
+random_state = 170
+
+x=D.data['X_train'][:, 1].reshape((38563, 1))
+print(x.shape)
+Y=D.data['Y_train']
+print(Y.shape)
+
+y_pred = KMeans(n_clusters=59, random_state=random_state).fit_predict(x)
+
+plt.subplot(221)
+plt.scatter(x[:, 0], Y, c=y_pred)
+plt.xlim(200,320)
+plt.title("Incorrect Number of Blobs")
+
+```
+
+    (38563, 1)
+    (38563,)
+
+
+
+
+
+    Text(0.5, 1.0, 'Incorrect Number of Blobs')
+
+
+
+
+![png](output_22_2.png)
+
+
+Les clusters sont verticaux, mais on ne peut rien faire de ces données. Nous devons trouver autre chose à faire pour bien visualiser les données. En effet, le jeu est trop important pour nous donc nous allons le subdiviser suivant les informations les plus importantes. 
+
+<div>
+    <span style="color:red"> Ici on commence par essayer d'afficher une regression des données</span>
+</div>
+
+
+
+```python
+import numpy as np
+from sklearn.tree import DecisionTreeRegressor
+import matplotlib.pyplot as plt
+```
+
+
+```python
+import numpy as np
+from sklearn.tree import DecisionTreeRegressor
+import matplotlib.pyplot as plt
+
+#il nous faut un 2D array pour x donc on reshape
+x=D.data['X_train'][:, 1].reshape((38563, 1))
+print(x.shape)
+Y=D.data['Y_train']
+print(Y.shape)
+
+# Fit regression model
+regr_1 = DecisionTreeRegressor(max_depth=10)
+regr_2 = DecisionTreeRegressor(max_depth=30)
+regr_1.fit(x, Y)
+regr_2.fit(x, Y)
+
+
+# Predict
+X_test = np.arange(0.0, 320.0, 1.)[:, np.newaxis]
+y_1 = regr_1.predict(X_test)
+y_2 = regr_2.predict(X_test)
+
+# Plot the results
+plt.figure()
+plt.scatter(x, Y, s=20, edgecolor="black",c="darkorange", label="data")
+plt.plot(X_test, y_1, color="cornflowerblue", label="max_depth=10", linewidth=2)
+plt.plot(X_test, y_2, color="yellowgreen", label="max_depth=30", linewidth=2)
+plt.xlabel("data")
+plt.ylabel("target")
+plt.xlim(200,320)
+plt.title("Decision Tree Regression")
+plt.legend()
+plt.show()
+
+```
+
+    (38563, 1)
+    (38563,)
+
+
+
+![png](output_26_1.png)
+
+
+On a réussi à faire une regression des données mais pas comme nous le voulions. En effet il va falloir selectionner les bonnes données à représenter puisqu'ici nous avons pris toutes les données sans aucun lien. Il faudra donc demander aux autres binômes pour savoir ce qui serait le plus judicieux à représenter en nous aidant de la visualisation des clusters avec le graphique précédent (celui des k-moyennes). Au moins on a réussi à prendre nos données et les afficher sans qu'il y ait de problème. Aisni on a pu mieux comprendre les méthodes en faisant cet exemple.
+
+<div>
+    <span style="color:red"> Ici on fait l'erreur de regression avec méthode du classifier</span>
+</div>
+
+
 
 
 ```python
@@ -832,8 +882,6 @@ plt.show()
 
 
 ```python
-
-
 def prepare_data(X_train,Y_train,featIdx0, featIdx1,M1):
     """
     entrainer les donnees par M(version naive pour la partie visualisation)
@@ -978,6 +1026,144 @@ plt.show()
 ![png](output_31_1.png)
 
 
+Nous avons des graphiques plutôt prometteur pour l'avenir puisque nous commencons à bien comprendre l'utilisation des outils graphiques. Nous avons donc fait les 2 premiers points demandés du TP. Le troisième semble plus dur à réaliser même si nous avons déjà fait le tp2.
+
+<div>
+<h1>Step 2: Building a predictive model</h1>
+</div>
+
+<div>
+    <h2>Loading data with DataManager</h2>
+    <p>
+We reload the data with the AutoML DataManager class because this is more convenient:
+   <br>     <span style="color:red"> Keep this, it illustrates how data in AutoML formal are loaded by the ingestion program </span>
+</div>
+
+
+```python
+from data_manager import DataManager
+D = DataManager(data_name, data_dir, replace_missing=True)
+print(D)
+```
+
+    Info file found : /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_public.info
+    DataManager : xporters
+    info:
+    	usage = Sample dataset Traffic Volume data
+    	name = traffic
+    	task = regression
+    	target_type = Numerical
+    	feat_type = Numerical
+    	metric = r2_metric
+    	time_budget = 1200
+    	feat_num = 59
+    	target_num = 3
+    	label_num = 3
+    	train_num = 35
+    	valid_num = 35
+    	test_num = 35
+    	has_categorical = 0
+    	has_missing = 0
+    	is_sparse = 0
+    	format = dense
+    data:
+    	X_train = array(38563, 59)
+    	Y_train = array(38563,)
+    	X_valid = array(4820, 59)
+    	Y_valid = array(0,)
+    	X_test = array(4820, 59)
+    	Y_test = array(0,)
+    feat_type:	array(59,)
+    feat_idx:	array(0,)
+    
+
+
+
+```python
+
+```
+
+<div>
+    <h2>Training a predictive model</h2>
+    <p>
+We provide an example of predictive model (for classification or regression) in the `sample_code_submission/` directory. It is a quite stupid model: it makes constant predictions. Replace it with your own model.
+    </div>
+
+
+```python
+from data_io import write
+from model import model
+# Uncomment the next line to show the code of the model
+# ??model 
+```
+
+<div>
+an instance of the model (run the constructor) and attempt to reload a previously saved version from `sample_code_submission/`:
+    
+</div>
+
+
+```python
+M = model()
+trained_model_name = model_dir + data_name
+# Uncomment the next line to re-load an already trained model
+M = M.load(trained_model_name)                  
+```
+
+    Model reloaded from: sample_code_submission/xporters_model.pickle
+
+
+<div>
+    Train the model (unless you reloaded a trained model) and make predictions. 
+</div>
+
+
+```python
+X_train = D.data['X_train']
+Y_train = D.data['Y_train']
+if not(M.is_trained) : M.fit(X_train, Y_train)                     
+Y_hat_train = M.predict(D.data['X_train']) # Optional, not really needed to test on taining examples
+Y_hat_valid = M.predict(D.data['X_valid'])
+Y_hat_test = M.predict(D.data['X_test'])
+```
+
+    PREDICT: dim(X)= [38563, 59]
+    PREDICT: dim(y)= [38563, 1]
+    PREDICT: dim(X)= [4820, 59]
+    PREDICT: dim(y)= [4820, 1]
+    PREDICT: dim(X)= [4820, 59]
+    PREDICT: dim(y)= [4820, 1]
+
+
+
+```python
+print(Y_hat_train)
+```
+
+    [ 785.64333333 4118.41177209 3494.91       ... 5717.20800309 4061.73350641
+     5597.73734994]
+
+
+<div>
+    <b> Save the trained model </b> (will be ready to reload next time around) and save the prediction results. IMPORTANT: if you save the trained model, it will be bundled with your sample code submission. Therefore your model will NOT be retrained on the challenge platform. Remove the pickle from the submission if you want the model to be retrained on the platform.
+</div>
+
+
+```python
+M.save(trained_model_name)                 
+result_name = result_dir + data_name
+from data_io import write
+write(result_name + '_train.predict', Y_hat_train)
+write(result_name + '_valid.predict', Y_hat_valid)
+write(result_name + '_test.predict', Y_hat_test)
+!ls $result_name*
+```
+
+    [31msample_result_submission/xporters_test.predict[m[m
+    [31msample_result_submission/xporters_train.predict[m[m
+    [31msample_result_submission/xporters_valid.predict[m[m
+
+
 <div>
     <h2>Scoring the results</h2>
     <h3>Load the challenge metric</h3>
@@ -1022,7 +1208,7 @@ plt.show()
 ```
 
 
-![png](output_37_0.png)
+![png](output_51_0.png)
 
 
 <div>
@@ -1063,11 +1249,6 @@ print('\nCV score (95 perc. CI): %0.2f (+/- %0.2f)' % (scores.mean(), scores.std
     CV score (95 perc. CI): 0.95 (+/- 0.00)
 
 
-
-```python
-
-```
-
 <div>
 <h1> Step 3: Making a submission </h1> 
 
@@ -1083,17 +1264,89 @@ Keep the sample code simple.
 !source activate python3; python $problem_dir/ingestion.py $data_dir $result_dir $problem_dir $model_dir
 ```
 
-    /bin/sh: 1: source: not found
-    Using input_dir: /home/sylviepeng/projects/truck/starting_kit/input_data
-    Using output_dir: /home/sylviepeng/projects/truck/starting_kit/sample_result_submission
-    Using program_dir: /home/sylviepeng/projects/truck/starting_kit/ingestion_program
-    Using submission_dir: /home/sylviepeng/projects/truck/starting_kit/sample_code_submission
-    Traceback (most recent call last):
-      File "ingestion_program//ingestion.py", line 137, in <module>
-        import data_io                       # general purpose input/output functions
-      File "/home/sylviepeng/projects/truck/starting_kit/ingestion_program/data_io.py", line 25, in <module>
-        import pandas as pd
-    ImportError: No module named pandas
+    Could not find conda environment: python3
+    You can list all discoverable environments with `conda info --envs`.
+    
+    Using input_dir: /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data
+    Using output_dir: /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/sample_result_submission
+    Using program_dir: /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/ingestion_program
+    Using submission_dir: /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/sample_code_submission
+    
+    ========== Ingestion program version 6 ==========
+    
+    ************************************************
+    ******** Processing dataset Xporters ********
+    ************************************************
+    ========= Reading and converting data ==========
+    Info file found : /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_public.info
+    ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_feat.type
+    [+] Success in  0.00 sec
+    ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_train.data
+    Replace missing values by 0 (slow, sorry)
+    [+] Success in  0.56 sec
+    ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_train.solution
+    [+] Success in  0.07 sec
+    ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_valid.data
+    Replace missing values by 0 (slow, sorry)
+    [+] Success in  0.11 sec
+    ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_valid.solution
+    [+] Success in  0.00 sec
+    ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_test.data
+    Replace missing values by 0 (slow, sorry)
+    [+] Success in  0.07 sec
+    ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_test.solution
+    [+] Success in  0.00 sec
+    DataManager : xporters
+    info:
+    	usage = Sample dataset Traffic Volume data
+    	name = traffic
+    	task = regression
+    	target_type = Numerical
+    	feat_type = Numerical
+    	metric = r2_metric
+    	time_budget = 1200
+    	feat_num = 59
+    	target_num = 3
+    	label_num = 3
+    	train_num = 35
+    	valid_num = 35
+    	test_num = 35
+    	has_categorical = 0
+    	has_missing = 0
+    	is_sparse = 0
+    	format = dense
+    data:
+    	X_train = array(38563, 59)
+    	Y_train = array(38563,)
+    	X_valid = array(4820, 59)
+    	Y_valid = array(0,)
+    	X_test = array(4820, 59)
+    	Y_test = array(0,)
+    feat_type:	array(59,)
+    feat_idx:	array(59,)
+    
+    [+] Size of uploaded data  56.00 bytes
+    [+] Cumulated time budget (all tasks so far)  1200.00 sec
+    [+] Time budget for this task 1200.00 sec
+    [+] Remaining time after reading data 1199.14 sec
+    ======== Creating model ==========
+    **********************************************************
+    ****** Attempting to reload model to avoid training ******
+    **********************************************************
+    Model reloaded from: /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/sample_code_submission/xporters_model.pickle
+    [+] Model reloaded, no need to train!
+    PREDICT: dim(X)= [38563, 59]
+    PREDICT: dim(y)= [38563, 1]
+    PREDICT: dim(X)= [4820, 59]
+    PREDICT: dim(y)= [4820, 1]
+    PREDICT: dim(X)= [4820, 59]
+    PREDICT: dim(y)= [4820, 1]
+    [+] Prediction success, time spent so far  2.80 sec
+    ======== Saving results to: /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/sample_result_submission
+    [+] Results saved, time spent so far  2.88 sec
+    [+] End cycle, time left 1197.12 sec
+    [+] Done
+    [+] Overall time spent  3.90 sec ::  Overall time budget 1200.00 sec
 
 
 <div>
@@ -1106,13 +1359,10 @@ scoring_output_dir = 'scoring_output'
 !source activate python3; python $score_dir/score.py $data_dir $result_dir $scoring_output_dir
 ```
 
-    /bin/sh: 1: source: not found
-    Traceback (most recent call last):
-      File "scoring_program//score.py", line 20, in <module>
-        import libscores
-      File "/home/sylviepeng/projects/truck/starting_kit/scoring_program/libscores.py", line 28, in <module>
-        import scipy as sp
-    ImportError: No module named scipy
+    Could not find conda environment: python3
+    You can list all discoverable environments with `conda info --envs`.
+    
+    ======= Set 1 (Xporters_train): r2_metric(set1_score)=0.991777003139 =======
 
 
 <div>
@@ -1135,9 +1385,29 @@ print("Submit one of these files:\n" + sample_code_submission + "\n" + sample_re
 ```
 
     Submit one of these files:
-    ../sample_code_submission_20-02-23-04-33.zip
-    ../sample_result_submission_20-02-23-04-33.zip
+    ../sample_code_submission_20-02-23-13-04.zip
+    ../sample_result_submission_20-02-23-13-04.zip
 
+
+
+```python
+
+```
+
+
+```python
+
+```
+
+
+```python
+
+```
+
+
+```python
+
+```
 
 
 ```python
