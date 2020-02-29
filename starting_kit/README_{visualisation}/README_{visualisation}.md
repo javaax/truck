@@ -1,4 +1,3 @@
-
 <div>
 <h1>Solve Xporters traffic volume problem</h1>
 <em><font size="-2">Organisers : Alexis de Russ&eacute;, Florian Bertelli, Gaspard Donada--Vidal, Ghassen Chaabane, Moez Ezzeddine, Ziheng Li</font></em>
@@ -17,7 +16,7 @@ But how is it possible to reduce travelling time and traffic jams if the number 
         In fact, prediction will be the key to determine the fastest way to get you from your home to your work, without getting in traffic jams. Predictions may also be used to determine which transportation infrastructures to
 build.
             <p>
-Xporters challenge is a small standard multivariable regression data set from the <a href="http://archive.ics.uci.edu/ml/datasets/">UCI Machine Learning Repository</a>, formatted in the AutoML format. It uses a data set concerning the traffic volume off an highway in the USA from 2012 to 2018, the date, and some informations about the weather. The aim of this challenge is to predict the traffic volume thanks to this features
+Xporters challenge is a small standard multivariable regression data set from the <a href="http://archive.ics.uci.edu/ml/datasets/">UCI Machine Learning Repository</a>, formatted in the AutoML format. It uses a data set concerning the traffic volume off an highway in the USA from 2012 to 2018, the date, and some informations about the weather. The aim of this challenge is to predict the traffic volume thanks to this features</div>
 
 
 
@@ -61,9 +60,9 @@ data_name = 'xporters'
 !ls $data_dir*
 ```
 
-    xporters_feat.name      xporters_test.data      xporters_valid.data
-    xporters_private.info   xporters_train.data
-    xporters_public.info    xporters_train.solution
+    xporters_feat.name     xporters_test.data	xporters_valid.data
+    xporters_private.info  xporters_train.data
+    xporters_public.info   xporters_train.solution
 
 
 For convenience, we load the data as a "pandas" data frame, so we can use "pandas" and "seaborn" built in functions to explore the data.
@@ -77,11 +76,6 @@ data = read_as_df(data_dir  + '/' + data_name)                # The data are loa
     Number of examples = 38563
     Number of features = 59
 
-
-
-```python
-
-```
 
 
 ```python
@@ -523,7 +517,7 @@ plt.show()
 ```
 
 
-![png](output_12_0.png)
+![png](output_11_0.png)
 
 
 
@@ -552,7 +546,7 @@ plt.show()
 ```
 
 
-![png](output_13_0.png)
+![png](output_12_0.png)
 
 
 
@@ -567,7 +561,7 @@ plt.title('Correlation Matrix', fontsize=16);
 ```
 
 
-![png](output_14_0.png)
+![png](output_13_0.png)
 
 
 
@@ -594,18 +588,13 @@ print (data.corr()['target'].sort_values(ascending=False)[:10], '\n')
 
 
 ```python
-
-```
-
-
-```python
 a = list(most_important_features.index)
 sns.pairplot(data,height= 5, x_vars = a , y_vars = 'target')
 plt.show()
 ```
 
 
-![png](output_17_0.png)
+![png](output_15_0.png)
 
 
 <h3>ci dessous est la partie que l'on modifie</h3>
@@ -631,7 +620,7 @@ Y_hat_valid = M.predict(D.data['X_valid'])
 Y_hat_test = M.predict(D.data['X_test'])
 ```
 
-    Info file found : /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_public.info
+    Info file found : /home/sylviepeng/projects/truck/starting_kit/input_data/xporters_public.info
     DataManager : xporters
     info:
     	usage = Sample dataset Traffic Volume data
@@ -681,9 +670,9 @@ write(result_name + '_test.predict', Y_hat_test)
 !ls $result_name*
 ```
 
-    [31msample_result_submission/xporters_test.predict[m[m
-    [31msample_result_submission/xporters_train.predict[m[m
-    [31msample_result_submission/xporters_valid.predict[m[m
+    sample_result_submission/xporters_test.predict
+    sample_result_submission/xporters_train.predict
+    sample_result_submission/xporters_valid.predict
 
 
 <div>
@@ -729,7 +718,7 @@ plt.title("Incorrect Number of Blobs")
 
 
 
-![png](output_22_2.png)
+![png](output_20_2.png)
 
 
 Les clusters sont verticaux, mais on ne peut rien faire de ces données. Nous devons trouver autre chose à faire pour bien visualiser les données. En effet, le jeu est trop important pour nous donc nous allons le subdiviser suivant les informations les plus importantes. 
@@ -738,13 +727,6 @@ Les clusters sont verticaux, mais on ne peut rien faire de ces données. Nous de
     <span style="color:red"> Ici on commence par essayer d'afficher une regression des données</span>
 </div>
 
-
-
-```python
-import numpy as np
-from sklearn.tree import DecisionTreeRegressor
-import matplotlib.pyplot as plt
-```
 
 
 ```python
@@ -789,91 +771,64 @@ plt.show()
 
 
 
-![png](output_26_1.png)
+![png](output_23_1.png)
 
 
 On a réussi à faire une regression des données mais pas comme nous le voulions. En effet il va falloir selectionner les bonnes données à représenter puisqu'ici nous avons pris toutes les données sans aucun lien. Il faudra donc demander aux autres binômes pour savoir ce qui serait le plus judicieux à représenter en nous aidant de la visualisation des clusters avec le graphique précédent (celui des k-moyennes). Au moins on a réussi à prendre nos données et les afficher sans qu'il y ait de problème. Aisni on a pu mieux comprendre les méthodes en faisant cet exemple.
 
 <div>
-    <span style="color:red"> Ici on fait l'erreur de regression avec méthode du classifier</span>
+    <span style="color:red"> Ici on faisait l'erreur de regression avec méthode du classifier pour le 24 janvier.     
+    Mais en effet, il ne nous faut pas le faire, donc on l'ai supprime</span>
 </div>
 
 
 
+Nous avons des graphiques plutôt prometteur pour l'avenir puisque nous commencons à bien comprendre l'utilisation des outils graphiques. Nous avons donc fait les 2 premiers points demandés du TP. Le troisième semble plus dur à réaliser même si nous avons déjà fait le tp2.
+
+#### Le $3^{ieme}$ point:
+On n'avait mal compris ce qu'il nous a demande pour le troisieme point. Quand on l'a bien compris a l'aide de notre charge de TP, le travail devient plus evident.
+
+En attendant les donnees des autres binome, on reprend celles de TP2.
+
+En essayant tous les types de $\textit{panda.plot}$, on s'est rendu compte que $\textit{panda.plot.bar}$ est le meilleur pour representer les erreurs clairement.
+
 
 ```python
-plot_step = 0.5
+#EN attendant les donnees des autres binome, on copie les donnees de TP2 
+#pour la visualisation
+import pandas as pd
 
-#En attendant la combinaison de travaux entre 3 sous groupe, 
-#entrainer les donnees par M, le model donnees comme exemple
-X_train = D.data['X_train']
-Y_train = D.data['Y_train']
-X = np.array([X_train[:,1],X_train[:,5]])
-X = np.transpose(X)
+model_name = ["Nearest Neighbors", "Linear SVM", "RBF SVM", "Gaussian Process",
+         "Decision Tree", "Random Forest", "Neural Net", "AdaBoost",
+         "Naive Bayes", "QDA"]
+data_df = pd.DataFrame(columns =["perf_tr", "std_tr", "perf_te", "std_te"])
 
-#model
-M1 = model()
+data_df.loc[model_name[0]] = [0.890110 ,0.018133 ,0.814818 ,0.025394]
 
-#trained_model_name = model_dir + data_name
-# Uncomment the next line to re-load an already trained model
-#M1 = M1.load(trained_model_name)  
+data_df.loc[model_name[1]] = [0.760862 ,0.012747 ,0.748730 ,0.013419]
+data_df.loc[model_name[2]] = [0.999367 ,0.001899 ,0.579652 ,0.019193]
+data_df.loc[model_name[3]] = [0.850530 ,0.032395 ,0.796938 ,0.011843]
+data_df.loc[model_name[4]] = [0.987433 ,0.016982 ,0.749261 ,0.028325]
+data_df.loc[model_name[5]] = [0.983304 ,0.011656 ,0.783340 ,0.020527]
+data_df.loc[model_name[6]] = [0.852333 ,0.024135 ,0.795255 ,0.011846]
+data_df.loc[model_name[7]] = [0.999398 ,0.001807 ,0.782927 ,0.024244]
+data_df.loc[model_name[8]] = [0.759021 ,0.017606 ,0.748764 ,0.020209]
+data_df.loc[model_name[9]] = [0.829892 ,0.020672 ,0.758330 ,0.032009]
 
-
-# Standardize
-mean = X.mean(axis=0)
-std = X.std(axis=0)
-X = (X - mean) / std
-
-# Train
-#clf = DecisionTreeClassifier().fit(X, Y_train)
-clf = M1.fit(X, Y_train)
-
-# Plot the decision boundary
-plt.subplot(1, 1, 1)
-
-x_min, x_max = X[:,0].min() - 1, X[:,0].max() + 1
-y_min, y_max = X[:,1].min() - 1, X[:,1].max() + 1
-xx, yy = np.meshgrid(np.arange(x_min, x_max, plot_step),
-                     np.arange(y_min, y_max, plot_step))
-
-Z = M1.predict(np.c_[xx.ravel(), yy.ravel()]) 
-Z = Z.reshape(xx.shape)
-cs = plt.contourf(xx, yy, Z, cmap=plt.cm.Paired)
-
-plt.xlabel(data.columns[1])
-plt.ylabel(data.columns[5])
-plt.axis("tight")
-
-# Plot the training points
-#for i, color in zip(range(D.info['label_num']), plot_colors):
-tier = (Y_train.max()-Y_train.min())/3
-
-idx0 = np.where(Y_train <tier)
-plt.scatter(X[idx0, 0], X[idx0, 1], c='b', label= " volume bas",
-                    cmap=plt.cm.Paired)
-
-idx1 = np.where( Y_train >tier*2  )
-plt.scatter(X[idx1, 0], X[idx1, 1], c='r', label= " volume haut",
-                    cmap=plt.cm.Paired)
-
-
-idx = np.arange(Y_train.shape[0])
-idx2 = np.setdiff1d(idx,idx0)
-idx2 = np.setdiff1d(idx2,idx1)
-plt.scatter(X[idx2, 0], X[idx2, 1], c='y', label= " volume moyen",
-                    cmap=plt.cm.Paired)
-
-plt.axis("tight")
-
-plt.suptitle("trafic volume using paired features")
-plt.legend()
-plt.show()
 ```
 
-    FIT: dim(X)= [38563, 2]
-    FIT: dim(y)= [38563, 1]
-    PREDICT: dim(X)= [1122, 2]
-    PREDICT: dim(y)= [1122, 1]
+
+```python
+data_df[['perf_tr', 'perf_te']].plot.bar()
+plt.ylim(0.5, 1)
+plt.ylabel("balanced_accuracy_score")
+```
+
+
+
+
+    Text(0, 0.5, 'balanced_accuracy_score')
+
 
 
 
@@ -882,151 +837,20 @@ plt.show()
 
 
 ```python
-def prepare_data(X_train,Y_train,featIdx0, featIdx1,M1):
-    """
-    entrainer les donnees par M(version naive pour la partie visualisation)
-    X_train, Y_train :   les donees et le 'target'
-    featIdx0, featIdx1 : les indix colonne de deux genres de donnees a representer 
-    M                    le model
-    """
-    X = np.array([X_train[:,1],X_train[:,5]])
-    X = np.transpose(X)
-    
-    #model 
-    #M1 = model()
-    
-    # Standardize (supposons les donnees sont pre-traitees ) 
-    #mean = X.mean(axis=0)
-    #std = X.std(axis=0)
-    #X = (X - mean) / std
-    
-    # Train
-    clf = M1.fit(X, Y_train)
-    return X,Y_train,M1
-
-# Plot the decision boundary
-
-def graphe_show_res(X,Y,M1,xlabel,ylabel,index, nrows=1, ncols=1,  plot_step=0.5):
-    """
-    tracer les sous-graphe par subplot
-    
-    X : les donnes a representer avec X.shape = (nLigne, 2)
-    Y : les 'target' correspondants
-    M : le model
-    xlabel, ylabel : label de l'axe x et y resp.
-    index : indix de sous-graphe dans le figure
-    nrows,ncols : dimension de figure
-    plot_step argument pour representer le contour(la prediction?)
-    """
-    
-    plt.subplot(nrows, ncols, index)
-
-    #pour le contour
-    x_min, x_max = X[:,0].min() - 1, X[:,0].max() + 1
-    y_min, y_max = X[:,1].min() - 1, X[:,1].max() + 1
-    xx, yy = np.meshgrid(np.arange(x_min, x_max, plot_step),
-                     np.arange(y_min, y_max, plot_step))
-    
-    Z = M1.predict(np.c_[xx.ravel(), yy.ravel()]) 
-    Z = Z.reshape(xx.shape)
-    cs = plt.contourf(xx, yy, Z, cmap=plt.cm.Paired)
-
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.axis("tight")
-
-    # Plot the training points
-    # a modifier en fonction de donnes treaite et nbr de classe
-    tier = (Y.max()-Y.min())/3
-
-    idx0 = np.where(Y <tier)
-    plt.scatter(X[idx0, 0], X[idx0, 1], c='b', label= " volume bas",
-                    cmap=plt.cm.Paired)
-
-    idx1 = np.where( Y >tier*2  )
-    plt.scatter(X[idx1, 0], X[idx1, 1], c='r', label= " volume haut",
-                    cmap=plt.cm.Paired)
-
-
-    idx = np.arange(Y.shape[0])
-    idx2 = np.setdiff1d(idx,idx0)
-    idx2 = np.setdiff1d(idx2,idx1)
-    plt.scatter(X[idx2, 0], X[idx2, 1], c='g', label= " volume moyen",
-                    cmap=plt.cm.Paired)
-
-    plt.axis("tight")
-
-    #plt.suptitle("Decision surface of a decision tree using paired features")
-    #plt.legend()
-    #plt.show()
-    
-def show_res(X_train, Y_train, M1, featIdx0 ,featIdx1 ,xlabel,ylabel,index,
-                    nrows=2, ncols=3, plot_step=0.5):
-    
-    X,Y,M1 = prepare_data(X_train,Y_train,featIdx0, featIdx1,M)
-    graphe_show_res(X,Y,M1,xlabel,ylabel,index,nrows, ncols, plot_step)
+data_df[['perf_tr', 'perf_te']].plot.line()
+plt.ylabel("balanced_accuracy_score")
 ```
 
 
-```python
-#En attendant la combinaison de travaux entre 3 sous groupe, 
-#traiter les donnees par M, le model donnees comme exemple
-# data.iloc[:,1] = temp, 4 = clouds_all, 5 = oil_prices,7 = hour
 
-X_train = D.data['X_train']
-Y_train = D.data['Y_train']
 
-M1 = model()
-
-X,Y,M1 = prepare_data(X_train,Y_train,1, 5,M1)
-graphe_show_res(X,Y,M1,data.columns[1],data.columns[5],1,2,3) #temps & oil_prices
-
-show_res(X_train, Y_train, 1 ,4, M1 ,data.columns[1],data.columns[4],2,2,3) #temps & clouds_all
-
-show_res(X_train, Y_train, 1 ,7, M1 ,data.columns[1],data.columns[7],3,2,3) #temps & hour
-
-show_res(X_train, Y_train, 4 ,5, M1 ,data.columns[4],data.columns[5],4,2,3)
-
-show_res(X_train, Y_train, 4 ,7, M1 ,data.columns[4],data.columns[7],5,2,3)
-
-show_res(X_train, Y_train, 5 ,7, M1 ,data.columns[5],data.columns[7],6,2,3)
-
-plt.suptitle("trafic volume using paired features")
-plt.legend()
-plt.show()
-```
-
-    FIT: dim(X)= [38563, 2]
-    FIT: dim(y)= [38563, 1]
-    PREDICT: dim(X)= [115000, 2]
-    PREDICT: dim(y)= [115000, 1]
-    FIT: dim(X)= [38563, 2]
-    FIT: dim(y)= [38563, 1]
-    PREDICT: dim(X)= [115000, 2]
-    PREDICT: dim(y)= [115000, 1]
-    FIT: dim(X)= [38563, 2]
-    FIT: dim(y)= [38563, 1]
-    PREDICT: dim(X)= [115000, 2]
-    PREDICT: dim(y)= [115000, 1]
-    FIT: dim(X)= [38563, 2]
-    FIT: dim(y)= [38563, 1]
-    PREDICT: dim(X)= [115000, 2]
-    PREDICT: dim(y)= [115000, 1]
-    FIT: dim(X)= [38563, 2]
-    FIT: dim(y)= [38563, 1]
-    PREDICT: dim(X)= [115000, 2]
-    PREDICT: dim(y)= [115000, 1]
-    FIT: dim(X)= [38563, 2]
-    FIT: dim(y)= [38563, 1]
-    PREDICT: dim(X)= [115000, 2]
-    PREDICT: dim(y)= [115000, 1]
+    Text(0, 0.5, 'balanced_accuracy_score')
 
 
 
-![png](output_31_1.png)
 
+![png](output_30_1.png)
 
-Nous avons des graphiques plutôt prometteur pour l'avenir puisque nous commencons à bien comprendre l'utilisation des outils graphiques. Nous avons donc fait les 2 premiers points demandés du TP. Le troisième semble plus dur à réaliser même si nous avons déjà fait le tp2.
 
 <div>
 <h1>Step 2: Building a predictive model</h1>
@@ -1208,7 +1032,7 @@ plt.show()
 ```
 
 
-![png](output_51_0.png)
+![png](output_49_0.png)
 
 
 <div>
