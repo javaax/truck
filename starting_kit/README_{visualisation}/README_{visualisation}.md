@@ -1,3 +1,4 @@
+
 <div>
 <h1>Solve Xporters traffic volume problem</h1>
 <em><font size="-2">Organisers : Alexis de Russ&eacute;, Florian Bertelli, Gaspard Donada--Vidal, Ghassen Chaabane, Moez Ezzeddine, Ziheng Li</font></em>
@@ -26,7 +27,15 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
-
+import numpy as np
+import pandas as pd
+from sklearn.neighbors import LocalOutlierFactor
+from sklearn.decomposition import PCA
+from sklearn import preprocessing
+from sklearn.preprocessing import StandardScaler
+import numpy as np
+from sklearn.tree import DecisionTreeRegressor
+import matplotlib.pyplot as plt
 ```
 
 
@@ -60,9 +69,9 @@ data_name = 'xporters'
 !ls $data_dir*
 ```
 
-    xporters_feat.name     xporters_test.data	xporters_valid.data
-    xporters_private.info  xporters_train.data
-    xporters_public.info   xporters_train.solution
+    xporters_feat.name      xporters_test.data      xporters_valid.data
+    xporters_private.info   xporters_train.data
+    xporters_public.info    xporters_train.solution
 
 
 For convenience, we load the data as a "pandas" data frame, so we can use "pandas" and "seaborn" built in functions to explore the data.
@@ -620,7 +629,7 @@ Y_hat_valid = M.predict(D.data['X_valid'])
 Y_hat_test = M.predict(D.data['X_test'])
 ```
 
-    Info file found : /home/sylviepeng/projects/truck/starting_kit/input_data/xporters_public.info
+    Info file found : /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_public.info
     DataManager : xporters
     info:
     	usage = Sample dataset Traffic Volume data
@@ -670,13 +679,15 @@ write(result_name + '_test.predict', Y_hat_test)
 !ls $result_name*
 ```
 
-    sample_result_submission/xporters_test.predict
-    sample_result_submission/xporters_train.predict
-    sample_result_submission/xporters_valid.predict
+    [31msample_result_submission/xporters_test.predict[m[m
+    [31msample_result_submission/xporters_train.predict[m[m
+    [31msample_result_submission/xporters_valid.predict[m[m
 
+
+<h1>Le $1^{ier}$Point : les clusters</h1> 
 
 <div>
-    <span style="color:red"> Ici on veut afficher notre jeu de donées en cluster pour une meilleure visualisation et pour pouvoir sélectionner les données liées. On va utiliser l'algorithme de base qui est celui des K-moyennes</span>
+    <span style="color:red"> Ici on veut afficher notre jeu de donées en cluster pour une meilleure visualisation et pour pouvoir sélectionner les données liées. On va utiliser l'algorithme de base qui est celui des K-moyennes. On va effectuer un pca sur les données pour avoir seulement deux paramètres donc deux dimensions. Ensuite on applique les K-moyennes sur un nombre des clusters que l'on veut. </span>
 </div>
 
 
@@ -692,105 +703,214 @@ plt.figure(figsize=(12, 12))
 n_samples = 38563
 random_state = 170
 
-x=D.data['X_train'][:, 1].reshape((38563, 1))
+x=D.data['X_train']
 print(x.shape)
 Y=D.data['Y_train']
 print(Y.shape)
 
-y_pred = KMeans(n_clusters=59, random_state=random_state).fit_predict(x)
+#on fait pca sur les données 
+scaler = StandardScaler()
+scaler.fit(x)
+scaled_data = scaler.transform(x)
+pca = PCA(n_components = 2)
+pca.fit(scaled_data)
+x_pca = pca.transform(scaled_data)
 
-plt.subplot(221)
-plt.scatter(x[:, 0], Y, c=y_pred)
-plt.xlim(200,320)
-plt.title("Incorrect Number of Blobs")
+y_pred = KMeans(n_clusters=2, random_state=random_state).fit_predict(x_pca)
 
+plt.scatter(x_pca[:, 0], x_pca[:,1], c=Y)
+plt.title("Visualisation des clusters")
+#on essaye d'afficher la légende c'est-à-dire la couleur des points correspond à une certaine quantité 
+#en l'occurence, Y est en fait target donc le nombre de voitures
+#qui passent donc on veut savoir à combien de voitures correspondent les couleurs 
+cb = plt.colorbar()
+cb.ax.tick_params(labelsize=12)
+plt.show()
 ```
 
-    (38563, 1)
+    (38563, 59)
     (38563,)
 
 
 
+![png](output_21_1.png)
 
 
-    Text(0.5, 1.0, 'Incorrect Number of Blobs')
+Ici on peut bien visualiser les clusters et on peut voir que si la couleur se rapproche du violet, c'est que peu de voitures sont passées, et à l'inverse, vers le beige c'est là où le plus de voitures passent.
 
-
-
-
-![png](output_20_2.png)
-
-
-Les clusters sont verticaux, mais on ne peut rien faire de ces données. Nous devons trouver autre chose à faire pour bien visualiser les données. En effet, le jeu est trop important pour nous donc nous allons le subdiviser suivant les informations les plus importantes. 
+<h1>Le $2^{ieme}$Point : Classifier</h1>
 
 <div>
-    <span style="color:red"> Ici on commence par essayer d'afficher une regression des données</span>
+    <h2><span style="color:blue"> Ici on commence par essayer d'afficher une regression des données</span></h2>
 </div>
 
+
+Nous reprenons ce que nous avions fait la dernière fois sur tout le jeu de données pour l'appliquer seulement sur 2 paramètres. On doit donc appliquer le pca.
 
 
 ```python
-import numpy as np
-from sklearn.tree import DecisionTreeRegressor
-import matplotlib.pyplot as plt
+fig, (ax1, ax2) = plt.subplots(1, 2,figsize=(15,5))
 
-#il nous faut un 2D array pour x donc on reshape
-x=D.data['X_train'][:, 1].reshape((38563, 1))
+x=D.data['X_train']
 print(x.shape)
 Y=D.data['Y_train']
 print(Y.shape)
 
-# Fit regression model
-regr_1 = DecisionTreeRegressor(max_depth=10)
-regr_2 = DecisionTreeRegressor(max_depth=30)
-regr_1.fit(x, Y)
-regr_2.fit(x, Y)
+#on fait pca sur les données 
+scaler = StandardScaler()
+scaler.fit(x)
+scaled_data = scaler.transform(x)
+pca = PCA(n_components = 2)
+pca.fit(scaled_data)
+x_pca = pca.transform(scaled_data)
+
+x1=x_pca[:,0][:, np.newaxis]
+x2=x_pca[:,1][:, np.newaxis]
+print(x_pca.shape)
+regr_1 = DecisionTreeRegressor(max_depth=3)
+regr_1b = DecisionTreeRegressor(max_depth=5)
+regr_2 = DecisionTreeRegressor(max_depth=3)
+regr_2b = DecisionTreeRegressor(max_depth=5)
+regr_1.fit(x1, Y)
+regr_1b.fit(x1, Y)
+regr_2.fit(x2, Y)
+regr_2b.fit(x2, Y)
 
 
 # Predict
-X_test = np.arange(0.0, 320.0, 1.)[:, np.newaxis]
-y_1 = regr_1.predict(X_test)
-y_2 = regr_2.predict(X_test)
+X_test1= np.linspace(-3.0, 4.0, num=38563)[:, np.newaxis]
+X_test2= np.linspace(-3.0, 5.0, num=38563)[:, np.newaxis]
+y_1 = regr_1.predict(X_test1)
+y_1b = regr_1b.predict(X_test1)
+y_2 = regr_2.predict(X_test2)
+y_2b = regr_2b.predict(X_test2)
+
 
 # Plot the results
-plt.figure()
-plt.scatter(x, Y, s=20, edgecolor="black",c="darkorange", label="data")
-plt.plot(X_test, y_1, color="cornflowerblue", label="max_depth=10", linewidth=2)
-plt.plot(X_test, y_2, color="yellowgreen", label="max_depth=30", linewidth=2)
-plt.xlabel("data")
-plt.ylabel("target")
-plt.xlim(200,320)
-plt.title("Decision Tree Regression")
-plt.legend()
-plt.show()
+#plt.figure()
+ax1.scatter(x1, Y, s=20, edgecolor="black",c="darkorange", label="data")
+ax1.plot(X_test1, y_1, color="cornflowerblue", label="max_depth=3", linewidth=2)
+ax1.plot(X_test1, y_1b, color="yellowgreen", label="max_depth=5", linewidth=2)
+ax1.set_xlabel("data")
+ax1.set_ylabel("target")
+ax1.set_xlim(-3,4)
+ax1.set_title("Decision Tree Regression pour le 1er paramètre")
+ax1.legend()
+
+ax2.scatter(x2, Y, s=20, edgecolor="black",c="darkorange", label="data")
+ax2.plot(X_test2, y_2, color="cornflowerblue", label="max_depth=3", linewidth=2)
+ax2.plot(X_test2, y_2b, color="yellowgreen", label="max_depth=5", linewidth=2)
+ax2.set_xlabel("data")
+ax2.set_ylabel("target")
+ax2.set_xlim(-3,5)
+ax2.set_title("Decision Tree Regression pour le 2nd paramètre")
+ax2.legend()
 
 ```
 
-    (38563, 1)
+    (38563, 59)
     (38563,)
+    (38563, 2)
 
 
 
-![png](output_23_1.png)
 
 
-On a réussi à faire une regression des données mais pas comme nous le voulions. En effet il va falloir selectionner les bonnes données à représenter puisqu'ici nous avons pris toutes les données sans aucun lien. Il faudra donc demander aux autres binômes pour savoir ce qui serait le plus judicieux à représenter en nous aidant de la visualisation des clusters avec le graphique précédent (celui des k-moyennes). Au moins on a réussi à prendre nos données et les afficher sans qu'il y ait de problème. Aisni on a pu mieux comprendre les méthodes en faisant cet exemple.
-
-<div>
-    <span style="color:red"> Ici on faisait l'erreur de regression avec méthode du classifier pour le 24 janvier.     
-    Mais en effet, il ne nous faut pas le faire, donc on l'ai supprime</span>
-</div>
+    <matplotlib.legend.Legend at 0x1a18acd128>
 
 
 
-Nous avons des graphiques plutôt prometteur pour l'avenir puisque nous commencons à bien comprendre l'utilisation des outils graphiques. Nous avons donc fait les 2 premiers points demandés du TP. Le troisième semble plus dur à réaliser même si nous avons déjà fait le tp2.
 
-#### Le $3^{ieme}$ point:
-On n'avait mal compris ce qu'il nous a demande pour le troisieme point. Quand on l'a bien compris a l'aide de notre charge de TP, le travail devient plus evident.
+![png](output_26_2.png)
 
-En attendant les donnees des autres binome, on reprend celles de TP2.
 
-En essayant tous les types de $\textit{panda.plot}$, on s'est rendu compte que $\textit{panda.plot.bar}$ est le meilleur pour representer les erreurs clairement.
+On a affiché deux graphiques : celui de gauche est la régression pour le paramètre 1 obtenu grâce au pca, et celui de droite celui de la régression pour le second paramètre du pca. Cependant, nous ne ne nous attendions pas à ce résultat. En effet, au début nous avions fait le code de la cellule juste en dessous de celle-ci mais il y a des problèmes de dimensions. Donc on a affiché en deux fois, un graphique pour chacun des deux paramètres. Cependant on doute des résultats obtenus car on ne sait pas trop ce qu'ils représentent. On trouve cela étrange de faire une régression sur des clusters puisque toutes les données sont donc tassées en clusters. Malheureusment, nous ne pouvons pas venir en soutien python le mercredi car nous avons cours, donc on se sent un peu bloqués sur des choses quz nous n'avons jamais faites. 
+
+
+```python
+x=D.data['X_train']
+print(x.shape)
+Y=D.data['Y_train']
+print(Y.shape)
+
+#on fait pca sur les données 
+scaler = StandardScaler()
+scaler.fit(x)
+scaled_data = scaler.transform(x)
+pca = PCA(n_components = 2)
+pca.fit(scaled_data)
+x_pca = pca.transform(scaled_data)
+
+print(x_pca.shape)
+regr_1 = DecisionTreeRegressor(max_depth=3)
+regr_2 = DecisionTreeRegressor(max_depth=5)
+regr_1.fit(x_pca, Y)
+regr_2.fit(x_pca, Y)
+
+
+# Predict
+#ici on ne sait pas comment faire pour que la dim soit de (538563,2)
+#au début on a fait ndarray mais après l'affichage devient incorrect
+#donc nous sommes bloqués pour une erreur de dimension
+X_test=np.linspace(-3.0, 4.0, num=38563)[:, np.newaxis]
+y_1 = regr_1.predict(X_test)
+y_2 = regr_2.predict(X_test)
+
+
+# Plot the results
+plt.figure()
+#ici c'est pareil car Y n'a qu'une seule dimension alors que pca a deux dimensions 
+plt.scatter(x_pca, Y, s=20, edgecolor="black",c="darkorange", label="data")
+plt.plot(X_test, y_1, color="cornflowerblue", label="max_depth=3", linewidth=2)
+plt.plot(X_test, y_2, color="yellowgreen", label="max_depth=5", linewidth=2)
+plt.set_xlabel("data")
+plt.set_ylabel("target")
+plt.set_xlim(-3,4)
+plt.set_title("Decision Tree Regression pour le 1er paramètre")
+plt.legend()
+```
+
+    (38563, 59)
+    (38563,)
+    (38563, 2)
+
+
+
+    ---------------------------------------------------------------------------
+
+    ValueError                                Traceback (most recent call last)
+
+    <ipython-input-17-3971a1d194f1> in <module>
+         24 #donc nous sommes bloqués pour une erreur de dimension
+         25 X_test=np.linspace(-3.0, 4.0, num=38563)[:, np.newaxis]
+    ---> 26 y_1 = regr_1.predict(X_test)
+         27 y_2 = regr_2.predict(X_test)
+         28 
+
+
+    /anaconda3/lib/python3.7/site-packages/sklearn/tree/tree.py in predict(self, X, check_input)
+        414         """
+        415         check_is_fitted(self, 'tree_')
+    --> 416         X = self._validate_X_predict(X, check_input)
+        417         proba = self.tree_.predict(X)
+        418         n_samples = X.shape[0]
+
+
+    /anaconda3/lib/python3.7/site-packages/sklearn/tree/tree.py in _validate_X_predict(self, X, check_input)
+        386                              "match the input. Model n_features is %s and "
+        387                              "input n_features is %s "
+    --> 388                              % (self.n_features_, n_features))
+        389 
+        390         return X
+
+
+    ValueError: Number of features of the model must match the input. Model n_features is 2 and input n_features is 1 
+
+
+<h1> Le $3^{ieme}$ Point: </h1>
+Nous n'avions pas tout compris sur ce troisième point mais finalement nous ne pouvons pas le faire sur nos données si les autres binômes ne nous ont pas rendu leur travail. Donc on a fait ce point en reprenant les données du tp2. Maintenant il ne restera plus qu'à attendre les données du reste de notre groupe.
+
+En essayant tous les types de $\textit{panda.plot}$, on s'est rendu compte que $\textit{panda.plot.bar}$ est le meilleur pour représenter les erreurs clairement.
 
 
 ```python
@@ -815,6 +935,7 @@ data_df.loc[model_name[7]] = [0.999398 ,0.001807 ,0.782927 ,0.024244]
 data_df.loc[model_name[8]] = [0.759021 ,0.017606 ,0.748764 ,0.020209]
 data_df.loc[model_name[9]] = [0.829892 ,0.020672 ,0.758330 ,0.032009]
 
+
 ```
 
 
@@ -832,7 +953,7 @@ plt.ylabel("balanced_accuracy_score")
 
 
 
-![png](output_29_1.png)
+![png](output_31_1.png)
 
 
 
@@ -849,12 +970,8 @@ plt.ylabel("balanced_accuracy_score")
 
 
 
-![png](output_30_1.png)
+![png](output_32_1.png)
 
-
-<div>
-<h1>Step 2: Building a predictive model</h1>
-</div>
 
 <div>
     <h2>Loading data with DataManager</h2>
@@ -901,11 +1018,6 @@ print(D)
     feat_idx:	array(0,)
     
 
-
-
-```python
-
-```
 
 <div>
     <h2>Training a predictive model</h2>
@@ -1107,9 +1219,9 @@ Keep the sample code simple.
     [+] Success in  0.00 sec
     ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_train.data
     Replace missing values by 0 (slow, sorry)
-    [+] Success in  0.56 sec
+    [+] Success in  0.70 sec
     ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_train.solution
-    [+] Success in  0.07 sec
+    [+] Success in  0.13 sec
     ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_valid.data
     Replace missing values by 0 (slow, sorry)
     [+] Success in  0.11 sec
@@ -1117,7 +1229,7 @@ Keep the sample code simple.
     [+] Success in  0.00 sec
     ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_test.data
     Replace missing values by 0 (slow, sorry)
-    [+] Success in  0.07 sec
+    [+] Success in  0.08 sec
     ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_test.solution
     [+] Success in  0.00 sec
     DataManager : xporters
@@ -1152,7 +1264,7 @@ Keep the sample code simple.
     [+] Size of uploaded data  56.00 bytes
     [+] Cumulated time budget (all tasks so far)  1200.00 sec
     [+] Time budget for this task 1200.00 sec
-    [+] Remaining time after reading data 1199.14 sec
+    [+] Remaining time after reading data 1198.92 sec
     ======== Creating model ==========
     **********************************************************
     ****** Attempting to reload model to avoid training ******
@@ -1165,12 +1277,12 @@ Keep the sample code simple.
     PREDICT: dim(y)= [4820, 1]
     PREDICT: dim(X)= [4820, 59]
     PREDICT: dim(y)= [4820, 1]
-    [+] Prediction success, time spent so far  2.80 sec
+    [+] Prediction success, time spent so far  4.59 sec
     ======== Saving results to: /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/sample_result_submission
-    [+] Results saved, time spent so far  2.88 sec
-    [+] End cycle, time left 1197.12 sec
+    [+] Results saved, time spent so far  4.76 sec
+    [+] End cycle, time left 1195.24 sec
     [+] Done
-    [+] Overall time spent  3.90 sec ::  Overall time budget 1200.00 sec
+    [+] Overall time spent  8.13 sec ::  Overall time budget 1200.00 sec
 
 
 <div>
@@ -1209,36 +1321,6 @@ print("Submit one of these files:\n" + sample_code_submission + "\n" + sample_re
 ```
 
     Submit one of these files:
-    ../sample_code_submission_20-02-23-13-04.zip
-    ../sample_result_submission_20-02-23-13-04.zip
+    ../sample_code_submission_20-03-01-15-42.zip
+    ../sample_result_submission_20-03-01-15-42.zip
 
-
-
-```python
-
-```
-
-
-```python
-
-```
-
-
-```python
-
-```
-
-
-```python
-
-```
-
-
-```python
-
-```
-
-
-```python
-
-```
