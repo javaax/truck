@@ -17,7 +17,7 @@ But how is it possible to reduce travelling time and traffic jams if the number 
         In fact, prediction will be the key to determine the fastest way to get you from your home to your work, without getting in traffic jams. Predictions may also be used to determine which transportation infrastructures to
 build.
             <p>
-Xporters challenge is a small standard multivariable regression data set from the <a href="http://archive.ics.uci.edu/ml/datasets/">UCI Machine Learning Repository</a>, formatted in the AutoML format. It uses a data set concerning the traffic volume off an highway in the USA from 2012 to 2018, the date, and some informations about the weather. The aim of this challenge is to predict the traffic volume thanks to this features
+Xporters challenge is a small standard multivariable regression data set from the <a href="http://archive.ics.uci.edu/ml/datasets/">UCI Machine Learning Repository</a>, formatted in the AutoML format. It uses a data set concerning the traffic volume off an highway in the USA from 2012 to 2018, the date, and some informations about the weather. The aim of this challenge is to predict the traffic volume thanks to this features</div>
 
 
 
@@ -27,7 +27,15 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
-
+import numpy as np
+import pandas as pd
+from sklearn.neighbors import LocalOutlierFactor
+from sklearn.decomposition import PCA
+from sklearn import preprocessing
+from sklearn.preprocessing import StandardScaler
+import numpy as np
+from sklearn.tree import DecisionTreeRegressor
+import matplotlib.pyplot as plt
 ```
 
 
@@ -77,11 +85,6 @@ data = read_as_df(data_dir  + '/' + data_name)                # The data are loa
     Number of examples = 38563
     Number of features = 59
 
-
-
-```python
-
-```
 
 
 ```python
@@ -523,7 +526,7 @@ plt.show()
 ```
 
 
-![png](output_12_0.png)
+![png](output_11_0.png)
 
 
 
@@ -552,7 +555,7 @@ plt.show()
 ```
 
 
-![png](output_13_0.png)
+![png](output_12_0.png)
 
 
 
@@ -567,7 +570,7 @@ plt.title('Correlation Matrix', fontsize=16);
 ```
 
 
-![png](output_14_0.png)
+![png](output_13_0.png)
 
 
 
@@ -594,18 +597,13 @@ print (data.corr()['target'].sort_values(ascending=False)[:10], '\n')
 
 
 ```python
-
-```
-
-
-```python
 a = list(most_important_features.index)
 sns.pairplot(data,height= 5, x_vars = a , y_vars = 'target')
 plt.show()
 ```
 
 
-![png](output_17_0.png)
+![png](output_15_0.png)
 
 
 <h3>ci dessous est la partie que l'on modifie</h3>
@@ -686,8 +684,10 @@ write(result_name + '_test.predict', Y_hat_test)
     [31msample_result_submission/xporters_valid.predict[m[m
 
 
+<h1>Le $1^{ier}$Point : les clusters</h1> 
+
 <div>
-    <span style="color:red"> Ici on veut afficher notre jeu de donées en cluster pour une meilleure visualisation et pour pouvoir sélectionner les données liées. On va utiliser l'algorithme de base qui est celui des K-moyennes</span>
+    <span style="color:red"> Ici on veut afficher notre jeu de donées en cluster pour une meilleure visualisation et pour pouvoir sélectionner les données liées. On va utiliser l'algorithme de base qui est celui des K-moyennes. On va effectuer un pca sur les données pour avoir seulement deux paramètres donc deux dimensions. Ensuite on applique les K-moyennes sur un nombre des clusters que l'on veut. </span>
 </div>
 
 
@@ -703,334 +703,275 @@ plt.figure(figsize=(12, 12))
 n_samples = 38563
 random_state = 170
 
-x=D.data['X_train'][:, 1].reshape((38563, 1))
+x=D.data['X_train']
 print(x.shape)
 Y=D.data['Y_train']
 print(Y.shape)
 
-y_pred = KMeans(n_clusters=59, random_state=random_state).fit_predict(x)
+#on fait pca sur les données 
+scaler = StandardScaler()
+scaler.fit(x)
+scaled_data = scaler.transform(x)
+pca = PCA(n_components = 2)
+pca.fit(scaled_data)
+x_pca = pca.transform(scaled_data)
 
-plt.subplot(221)
-plt.scatter(x[:, 0], Y, c=y_pred)
-plt.xlim(200,320)
-plt.title("Incorrect Number of Blobs")
+y_pred = KMeans(n_clusters=2, random_state=random_state).fit_predict(x_pca)
 
+plt.scatter(x_pca[:, 0], x_pca[:,1], c=Y)
+plt.title("Visualisation des clusters")
+#on essaye d'afficher la légende c'est-à-dire la couleur des points correspond à une certaine quantité 
+#en l'occurence, Y est en fait target donc le nombre de voitures
+#qui passent donc on veut savoir à combien de voitures correspondent les couleurs 
+cb = plt.colorbar()
+cb.ax.tick_params(labelsize=12)
+plt.show()
 ```
 
-    (38563, 1)
+    (38563, 59)
     (38563,)
 
 
 
+![png](output_21_1.png)
 
 
-    Text(0.5, 1.0, 'Incorrect Number of Blobs')
+Ici on peut bien visualiser les clusters et on peut voir que si la couleur se rapproche du violet, c'est que peu de voitures sont passées, et à l'inverse, vers le beige c'est là où le plus de voitures passent.
 
-
-
-
-![png](output_22_2.png)
-
-
-Les clusters sont verticaux, mais on ne peut rien faire de ces données. Nous devons trouver autre chose à faire pour bien visualiser les données. En effet, le jeu est trop important pour nous donc nous allons le subdiviser suivant les informations les plus importantes. 
+<h1>Le $2^{ieme}$Point : Classifier</h1>
 
 <div>
-    <span style="color:red"> Ici on commence par essayer d'afficher une regression des données</span>
+    <h2><span style="color:blue"> Ici on commence par essayer d'afficher une regression des données</span></h2>
 </div>
 
 
-
-```python
-import numpy as np
-from sklearn.tree import DecisionTreeRegressor
-import matplotlib.pyplot as plt
-```
+Nous reprenons ce que nous avions fait la dernière fois sur tout le jeu de données pour l'appliquer seulement sur 2 paramètres. On doit donc appliquer le pca.
 
 
 ```python
-import numpy as np
-from sklearn.tree import DecisionTreeRegressor
-import matplotlib.pyplot as plt
+fig, (ax1, ax2) = plt.subplots(1, 2,figsize=(15,5))
 
-#il nous faut un 2D array pour x donc on reshape
-x=D.data['X_train'][:, 1].reshape((38563, 1))
+x=D.data['X_train']
 print(x.shape)
 Y=D.data['Y_train']
 print(Y.shape)
 
-# Fit regression model
-regr_1 = DecisionTreeRegressor(max_depth=10)
-regr_2 = DecisionTreeRegressor(max_depth=30)
-regr_1.fit(x, Y)
-regr_2.fit(x, Y)
+#on fait pca sur les données 
+scaler = StandardScaler()
+scaler.fit(x)
+scaled_data = scaler.transform(x)
+pca = PCA(n_components = 2)
+pca.fit(scaled_data)
+x_pca = pca.transform(scaled_data)
+
+x1=x_pca[:,0][:, np.newaxis]
+x2=x_pca[:,1][:, np.newaxis]
+print(x_pca.shape)
+regr_1 = DecisionTreeRegressor(max_depth=3)
+regr_1b = DecisionTreeRegressor(max_depth=5)
+regr_2 = DecisionTreeRegressor(max_depth=3)
+regr_2b = DecisionTreeRegressor(max_depth=5)
+regr_1.fit(x1, Y)
+regr_1b.fit(x1, Y)
+regr_2.fit(x2, Y)
+regr_2b.fit(x2, Y)
 
 
 # Predict
-X_test = np.arange(0.0, 320.0, 1.)[:, np.newaxis]
+X_test1= np.linspace(-3.0, 4.0, num=38563)[:, np.newaxis]
+X_test2= np.linspace(-3.0, 5.0, num=38563)[:, np.newaxis]
+y_1 = regr_1.predict(X_test1)
+y_1b = regr_1b.predict(X_test1)
+y_2 = regr_2.predict(X_test2)
+y_2b = regr_2b.predict(X_test2)
+
+
+# Plot the results
+#plt.figure()
+ax1.scatter(x1, Y, s=20, edgecolor="black",c="darkorange", label="data")
+ax1.plot(X_test1, y_1, color="cornflowerblue", label="max_depth=3", linewidth=2)
+ax1.plot(X_test1, y_1b, color="yellowgreen", label="max_depth=5", linewidth=2)
+ax1.set_xlabel("data")
+ax1.set_ylabel("target")
+ax1.set_xlim(-3,4)
+ax1.set_title("Decision Tree Regression pour le 1er paramètre")
+ax1.legend()
+
+ax2.scatter(x2, Y, s=20, edgecolor="black",c="darkorange", label="data")
+ax2.plot(X_test2, y_2, color="cornflowerblue", label="max_depth=3", linewidth=2)
+ax2.plot(X_test2, y_2b, color="yellowgreen", label="max_depth=5", linewidth=2)
+ax2.set_xlabel("data")
+ax2.set_ylabel("target")
+ax2.set_xlim(-3,5)
+ax2.set_title("Decision Tree Regression pour le 2nd paramètre")
+ax2.legend()
+
+```
+
+    (38563, 59)
+    (38563,)
+    (38563, 2)
+
+
+
+
+
+    <matplotlib.legend.Legend at 0x1a18acd128>
+
+
+
+
+![png](output_26_2.png)
+
+
+On a affiché deux graphiques : celui de gauche est la régression pour le paramètre 1 obtenu grâce au pca, et celui de droite celui de la régression pour le second paramètre du pca. Cependant, nous ne ne nous attendions pas à ce résultat. En effet, au début nous avions fait le code de la cellule juste en dessous de celle-ci mais il y a des problèmes de dimensions. Donc on a affiché en deux fois, un graphique pour chacun des deux paramètres. Cependant on doute des résultats obtenus car on ne sait pas trop ce qu'ils représentent. On trouve cela étrange de faire une régression sur des clusters puisque toutes les données sont donc tassées en clusters. Malheureusment, nous ne pouvons pas venir en soutien python le mercredi car nous avons cours, donc on se sent un peu bloqués sur des choses quz nous n'avons jamais faites. 
+
+
+```python
+x=D.data['X_train']
+print(x.shape)
+Y=D.data['Y_train']
+print(Y.shape)
+
+#on fait pca sur les données 
+scaler = StandardScaler()
+scaler.fit(x)
+scaled_data = scaler.transform(x)
+pca = PCA(n_components = 2)
+pca.fit(scaled_data)
+x_pca = pca.transform(scaled_data)
+
+print(x_pca.shape)
+regr_1 = DecisionTreeRegressor(max_depth=3)
+regr_2 = DecisionTreeRegressor(max_depth=5)
+regr_1.fit(x_pca, Y)
+regr_2.fit(x_pca, Y)
+
+
+# Predict
+#ici on ne sait pas comment faire pour que la dim soit de (538563,2)
+#au début on a fait ndarray mais après l'affichage devient incorrect
+#donc nous sommes bloqués pour une erreur de dimension
+X_test=np.linspace(-3.0, 4.0, num=38563)[:, np.newaxis]
 y_1 = regr_1.predict(X_test)
 y_2 = regr_2.predict(X_test)
 
+
 # Plot the results
 plt.figure()
-plt.scatter(x, Y, s=20, edgecolor="black",c="darkorange", label="data")
-plt.plot(X_test, y_1, color="cornflowerblue", label="max_depth=10", linewidth=2)
-plt.plot(X_test, y_2, color="yellowgreen", label="max_depth=30", linewidth=2)
-plt.xlabel("data")
-plt.ylabel("target")
-plt.xlim(200,320)
-plt.title("Decision Tree Regression")
+#ici c'est pareil car Y n'a qu'une seule dimension alors que pca a deux dimensions 
+plt.scatter(x_pca, Y, s=20, edgecolor="black",c="darkorange", label="data")
+plt.plot(X_test, y_1, color="cornflowerblue", label="max_depth=3", linewidth=2)
+plt.plot(X_test, y_2, color="yellowgreen", label="max_depth=5", linewidth=2)
+plt.set_xlabel("data")
+plt.set_ylabel("target")
+plt.set_xlim(-3,4)
+plt.set_title("Decision Tree Regression pour le 1er paramètre")
 plt.legend()
-plt.show()
-
 ```
 
-    (38563, 1)
+    (38563, 59)
     (38563,)
+    (38563, 2)
 
 
 
-![png](output_26_1.png)
+    ---------------------------------------------------------------------------
+
+    ValueError                                Traceback (most recent call last)
+
+    <ipython-input-17-3971a1d194f1> in <module>
+         24 #donc nous sommes bloqués pour une erreur de dimension
+         25 X_test=np.linspace(-3.0, 4.0, num=38563)[:, np.newaxis]
+    ---> 26 y_1 = regr_1.predict(X_test)
+         27 y_2 = regr_2.predict(X_test)
+         28 
 
 
-On a réussi à faire une regression des données mais pas comme nous le voulions. En effet il va falloir selectionner les bonnes données à représenter puisqu'ici nous avons pris toutes les données sans aucun lien. Il faudra donc demander aux autres binômes pour savoir ce qui serait le plus judicieux à représenter en nous aidant de la visualisation des clusters avec le graphique précédent (celui des k-moyennes). Au moins on a réussi à prendre nos données et les afficher sans qu'il y ait de problème. Aisni on a pu mieux comprendre les méthodes en faisant cet exemple.
-
-<div>
-    <span style="color:red"> Ici on fait l'erreur de regression avec méthode du classifier</span>
-</div>
-
-
-
-
-```python
-plot_step = 0.5
-
-#En attendant la combinaison de travaux entre 3 sous groupe, 
-#entrainer les donnees par M, le model donnees comme exemple
-X_train = D.data['X_train']
-Y_train = D.data['Y_train']
-X = np.array([X_train[:,1],X_train[:,5]])
-X = np.transpose(X)
-
-#model
-M1 = model()
-
-#trained_model_name = model_dir + data_name
-# Uncomment the next line to re-load an already trained model
-#M1 = M1.load(trained_model_name)  
+    /anaconda3/lib/python3.7/site-packages/sklearn/tree/tree.py in predict(self, X, check_input)
+        414         """
+        415         check_is_fitted(self, 'tree_')
+    --> 416         X = self._validate_X_predict(X, check_input)
+        417         proba = self.tree_.predict(X)
+        418         n_samples = X.shape[0]
 
 
-# Standardize
-mean = X.mean(axis=0)
-std = X.std(axis=0)
-X = (X - mean) / std
-
-# Train
-#clf = DecisionTreeClassifier().fit(X, Y_train)
-clf = M1.fit(X, Y_train)
-
-# Plot the decision boundary
-plt.subplot(1, 1, 1)
-
-x_min, x_max = X[:,0].min() - 1, X[:,0].max() + 1
-y_min, y_max = X[:,1].min() - 1, X[:,1].max() + 1
-xx, yy = np.meshgrid(np.arange(x_min, x_max, plot_step),
-                     np.arange(y_min, y_max, plot_step))
-
-Z = M1.predict(np.c_[xx.ravel(), yy.ravel()]) 
-Z = Z.reshape(xx.shape)
-cs = plt.contourf(xx, yy, Z, cmap=plt.cm.Paired)
-
-plt.xlabel(data.columns[1])
-plt.ylabel(data.columns[5])
-plt.axis("tight")
-
-# Plot the training points
-#for i, color in zip(range(D.info['label_num']), plot_colors):
-tier = (Y_train.max()-Y_train.min())/3
-
-idx0 = np.where(Y_train <tier)
-plt.scatter(X[idx0, 0], X[idx0, 1], c='b', label= " volume bas",
-                    cmap=plt.cm.Paired)
-
-idx1 = np.where( Y_train >tier*2  )
-plt.scatter(X[idx1, 0], X[idx1, 1], c='r', label= " volume haut",
-                    cmap=plt.cm.Paired)
+    /anaconda3/lib/python3.7/site-packages/sklearn/tree/tree.py in _validate_X_predict(self, X, check_input)
+        386                              "match the input. Model n_features is %s and "
+        387                              "input n_features is %s "
+    --> 388                              % (self.n_features_, n_features))
+        389 
+        390         return X
 
 
-idx = np.arange(Y_train.shape[0])
-idx2 = np.setdiff1d(idx,idx0)
-idx2 = np.setdiff1d(idx2,idx1)
-plt.scatter(X[idx2, 0], X[idx2, 1], c='y', label= " volume moyen",
-                    cmap=plt.cm.Paired)
-
-plt.axis("tight")
-
-plt.suptitle("trafic volume using paired features")
-plt.legend()
-plt.show()
-```
-
-    FIT: dim(X)= [38563, 2]
-    FIT: dim(y)= [38563, 1]
-    PREDICT: dim(X)= [1122, 2]
-    PREDICT: dim(y)= [1122, 1]
+    ValueError: Number of features of the model must match the input. Model n_features is 2 and input n_features is 1 
 
 
+<h1> Le $3^{ieme}$ Point: </h1>
+Nous n'avions pas tout compris sur ce troisième point mais finalement nous ne pouvons pas le faire sur nos données si les autres binômes ne nous ont pas rendu leur travail. Donc on a fait ce point en reprenant les données du tp2. Maintenant il ne restera plus qu'à attendre les données du reste de notre groupe.
 
-![png](output_29_1.png)
-
+En essayant tous les types de $\textit{panda.plot}$, on s'est rendu compte que $\textit{panda.plot.bar}$ est le meilleur pour représenter les erreurs clairement.
 
 
 ```python
-def prepare_data(X_train,Y_train,featIdx0, featIdx1,M1):
-    """
-    entrainer les donnees par M(version naive pour la partie visualisation)
-    X_train, Y_train :   les donees et le 'target'
-    featIdx0, featIdx1 : les indix colonne de deux genres de donnees a representer 
-    M                    le model
-    """
-    X = np.array([X_train[:,1],X_train[:,5]])
-    X = np.transpose(X)
-    
-    #model 
-    #M1 = model()
-    
-    # Standardize (supposons les donnees sont pre-traitees ) 
-    #mean = X.mean(axis=0)
-    #std = X.std(axis=0)
-    #X = (X - mean) / std
-    
-    # Train
-    clf = M1.fit(X, Y_train)
-    return X,Y_train,M1
+#EN attendant les donnees des autres binome, on copie les donnees de TP2 
+#pour la visualisation
+import pandas as pd
 
-# Plot the decision boundary
+model_name = ["Nearest Neighbors", "Linear SVM", "RBF SVM", "Gaussian Process",
+         "Decision Tree", "Random Forest", "Neural Net", "AdaBoost",
+         "Naive Bayes", "QDA"]
+data_df = pd.DataFrame(columns =["perf_tr", "std_tr", "perf_te", "std_te"])
 
-def graphe_show_res(X,Y,M1,xlabel,ylabel,index, nrows=1, ncols=1,  plot_step=0.5):
-    """
-    tracer les sous-graphe par subplot
-    
-    X : les donnes a representer avec X.shape = (nLigne, 2)
-    Y : les 'target' correspondants
-    M : le model
-    xlabel, ylabel : label de l'axe x et y resp.
-    index : indix de sous-graphe dans le figure
-    nrows,ncols : dimension de figure
-    plot_step argument pour representer le contour(la prediction?)
-    """
-    
-    plt.subplot(nrows, ncols, index)
+data_df.loc[model_name[0]] = [0.890110 ,0.018133 ,0.814818 ,0.025394]
 
-    #pour le contour
-    x_min, x_max = X[:,0].min() - 1, X[:,0].max() + 1
-    y_min, y_max = X[:,1].min() - 1, X[:,1].max() + 1
-    xx, yy = np.meshgrid(np.arange(x_min, x_max, plot_step),
-                     np.arange(y_min, y_max, plot_step))
-    
-    Z = M1.predict(np.c_[xx.ravel(), yy.ravel()]) 
-    Z = Z.reshape(xx.shape)
-    cs = plt.contourf(xx, yy, Z, cmap=plt.cm.Paired)
-
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.axis("tight")
-
-    # Plot the training points
-    # a modifier en fonction de donnes treaite et nbr de classe
-    tier = (Y.max()-Y.min())/3
-
-    idx0 = np.where(Y <tier)
-    plt.scatter(X[idx0, 0], X[idx0, 1], c='b', label= " volume bas",
-                    cmap=plt.cm.Paired)
-
-    idx1 = np.where( Y >tier*2  )
-    plt.scatter(X[idx1, 0], X[idx1, 1], c='r', label= " volume haut",
-                    cmap=plt.cm.Paired)
+data_df.loc[model_name[1]] = [0.760862 ,0.012747 ,0.748730 ,0.013419]
+data_df.loc[model_name[2]] = [0.999367 ,0.001899 ,0.579652 ,0.019193]
+data_df.loc[model_name[3]] = [0.850530 ,0.032395 ,0.796938 ,0.011843]
+data_df.loc[model_name[4]] = [0.987433 ,0.016982 ,0.749261 ,0.028325]
+data_df.loc[model_name[5]] = [0.983304 ,0.011656 ,0.783340 ,0.020527]
+data_df.loc[model_name[6]] = [0.852333 ,0.024135 ,0.795255 ,0.011846]
+data_df.loc[model_name[7]] = [0.999398 ,0.001807 ,0.782927 ,0.024244]
+data_df.loc[model_name[8]] = [0.759021 ,0.017606 ,0.748764 ,0.020209]
+data_df.loc[model_name[9]] = [0.829892 ,0.020672 ,0.758330 ,0.032009]
 
 
-    idx = np.arange(Y.shape[0])
-    idx2 = np.setdiff1d(idx,idx0)
-    idx2 = np.setdiff1d(idx2,idx1)
-    plt.scatter(X[idx2, 0], X[idx2, 1], c='g', label= " volume moyen",
-                    cmap=plt.cm.Paired)
-
-    plt.axis("tight")
-
-    #plt.suptitle("Decision surface of a decision tree using paired features")
-    #plt.legend()
-    #plt.show()
-    
-def show_res(X_train, Y_train, M1, featIdx0 ,featIdx1 ,xlabel,ylabel,index,
-                    nrows=2, ncols=3, plot_step=0.5):
-    
-    X,Y,M1 = prepare_data(X_train,Y_train,featIdx0, featIdx1,M)
-    graphe_show_res(X,Y,M1,xlabel,ylabel,index,nrows, ncols, plot_step)
 ```
 
 
 ```python
-#En attendant la combinaison de travaux entre 3 sous groupe, 
-#traiter les donnees par M, le model donnees comme exemple
-# data.iloc[:,1] = temp, 4 = clouds_all, 5 = oil_prices,7 = hour
-
-X_train = D.data['X_train']
-Y_train = D.data['Y_train']
-
-M1 = model()
-
-X,Y,M1 = prepare_data(X_train,Y_train,1, 5,M1)
-graphe_show_res(X,Y,M1,data.columns[1],data.columns[5],1,2,3) #temps & oil_prices
-
-show_res(X_train, Y_train, 1 ,4, M1 ,data.columns[1],data.columns[4],2,2,3) #temps & clouds_all
-
-show_res(X_train, Y_train, 1 ,7, M1 ,data.columns[1],data.columns[7],3,2,3) #temps & hour
-
-show_res(X_train, Y_train, 4 ,5, M1 ,data.columns[4],data.columns[5],4,2,3)
-
-show_res(X_train, Y_train, 4 ,7, M1 ,data.columns[4],data.columns[7],5,2,3)
-
-show_res(X_train, Y_train, 5 ,7, M1 ,data.columns[5],data.columns[7],6,2,3)
-
-plt.suptitle("trafic volume using paired features")
-plt.legend()
-plt.show()
+data_df[['perf_tr', 'perf_te']].plot.bar()
+plt.ylim(0.5, 1)
+plt.ylabel("balanced_accuracy_score")
 ```
 
-    FIT: dim(X)= [38563, 2]
-    FIT: dim(y)= [38563, 1]
-    PREDICT: dim(X)= [115000, 2]
-    PREDICT: dim(y)= [115000, 1]
-    FIT: dim(X)= [38563, 2]
-    FIT: dim(y)= [38563, 1]
-    PREDICT: dim(X)= [115000, 2]
-    PREDICT: dim(y)= [115000, 1]
-    FIT: dim(X)= [38563, 2]
-    FIT: dim(y)= [38563, 1]
-    PREDICT: dim(X)= [115000, 2]
-    PREDICT: dim(y)= [115000, 1]
-    FIT: dim(X)= [38563, 2]
-    FIT: dim(y)= [38563, 1]
-    PREDICT: dim(X)= [115000, 2]
-    PREDICT: dim(y)= [115000, 1]
-    FIT: dim(X)= [38563, 2]
-    FIT: dim(y)= [38563, 1]
-    PREDICT: dim(X)= [115000, 2]
-    PREDICT: dim(y)= [115000, 1]
-    FIT: dim(X)= [38563, 2]
-    FIT: dim(y)= [38563, 1]
-    PREDICT: dim(X)= [115000, 2]
-    PREDICT: dim(y)= [115000, 1]
+
+
+
+    Text(0, 0.5, 'balanced_accuracy_score')
+
 
 
 
 ![png](output_31_1.png)
 
 
-Nous avons des graphiques plutôt prometteur pour l'avenir puisque nous commencons à bien comprendre l'utilisation des outils graphiques. Nous avons donc fait les 2 premiers points demandés du TP. Le troisième semble plus dur à réaliser même si nous avons déjà fait le tp2.
 
-<div>
-<h1>Step 2: Building a predictive model</h1>
-</div>
+```python
+data_df[['perf_tr', 'perf_te']].plot.line()
+plt.ylabel("balanced_accuracy_score")
+```
+
+
+
+
+    Text(0, 0.5, 'balanced_accuracy_score')
+
+
+
+
+![png](output_32_1.png)
+
 
 <div>
     <h2>Loading data with DataManager</h2>
@@ -1077,11 +1018,6 @@ print(D)
     feat_idx:	array(0,)
     
 
-
-
-```python
-
-```
 
 <div>
     <h2>Training a predictive model</h2>
@@ -1208,7 +1144,7 @@ plt.show()
 ```
 
 
-![png](output_51_0.png)
+![png](output_49_0.png)
 
 
 <div>
@@ -1283,9 +1219,9 @@ Keep the sample code simple.
     [+] Success in  0.00 sec
     ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_train.data
     Replace missing values by 0 (slow, sorry)
-    [+] Success in  0.56 sec
+    [+] Success in  0.70 sec
     ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_train.solution
-    [+] Success in  0.07 sec
+    [+] Success in  0.13 sec
     ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_valid.data
     Replace missing values by 0 (slow, sorry)
     [+] Success in  0.11 sec
@@ -1293,7 +1229,7 @@ Keep the sample code simple.
     [+] Success in  0.00 sec
     ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_test.data
     Replace missing values by 0 (slow, sorry)
-    [+] Success in  0.07 sec
+    [+] Success in  0.08 sec
     ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_test.solution
     [+] Success in  0.00 sec
     DataManager : xporters
@@ -1328,7 +1264,7 @@ Keep the sample code simple.
     [+] Size of uploaded data  56.00 bytes
     [+] Cumulated time budget (all tasks so far)  1200.00 sec
     [+] Time budget for this task 1200.00 sec
-    [+] Remaining time after reading data 1199.14 sec
+    [+] Remaining time after reading data 1198.92 sec
     ======== Creating model ==========
     **********************************************************
     ****** Attempting to reload model to avoid training ******
@@ -1341,12 +1277,12 @@ Keep the sample code simple.
     PREDICT: dim(y)= [4820, 1]
     PREDICT: dim(X)= [4820, 59]
     PREDICT: dim(y)= [4820, 1]
-    [+] Prediction success, time spent so far  2.80 sec
+    [+] Prediction success, time spent so far  4.59 sec
     ======== Saving results to: /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/sample_result_submission
-    [+] Results saved, time spent so far  2.88 sec
-    [+] End cycle, time left 1197.12 sec
+    [+] Results saved, time spent so far  4.76 sec
+    [+] End cycle, time left 1195.24 sec
     [+] Done
-    [+] Overall time spent  3.90 sec ::  Overall time budget 1200.00 sec
+    [+] Overall time spent  8.13 sec ::  Overall time budget 1200.00 sec
 
 
 <div>
@@ -1385,36 +1321,6 @@ print("Submit one of these files:\n" + sample_code_submission + "\n" + sample_re
 ```
 
     Submit one of these files:
-    ../sample_code_submission_20-02-23-13-04.zip
-    ../sample_result_submission_20-02-23-13-04.zip
+    ../sample_code_submission_20-03-01-15-42.zip
+    ../sample_result_submission_20-03-01-15-42.zip
 
-
-
-```python
-
-```
-
-
-```python
-
-```
-
-
-```python
-
-```
-
-
-```python
-
-```
-
-
-```python
-
-```
-
-
-```python
-
-```
