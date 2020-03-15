@@ -1,4 +1,3 @@
-
 <div>
 <h1>Solve Xporters traffic volume problem</h1>
 <em><font size="-2">Organisers : Alexis de Russ&eacute;, Florian Bertelli, Gaspard Donada--Vidal, Ghassen Chaabane, Moez Ezzeddine, Ziheng Li</font></em>
@@ -53,6 +52,10 @@ path.append(model_dir); path.append(problem_dir); path.append(score_dir);
 sns.set()
 ```
 
+    The autoreload extension is already loaded. To reload it, use:
+      %reload_ext autoreload
+
+
 <div>
     <h1> Step 1: Exploratory data analysis </h1>
 <p>
@@ -69,9 +72,9 @@ data_name = 'xporters'
 !ls $data_dir*
 ```
 
-    xporters_feat.name      xporters_test.data      xporters_valid.data
-    xporters_private.info   xporters_train.data
-    xporters_public.info    xporters_train.solution
+    xporters_feat.name     xporters_test.data	xporters_valid.data
+    xporters_private.info  xporters_train.data
+    xporters_public.info   xporters_train.solution
 
 
 For convenience, we load the data as a "pandas" data frame, so we can use "pandas" and "seaborn" built in functions to explore the data.
@@ -629,7 +632,7 @@ Y_hat_valid = M.predict(D.data['X_valid'])
 Y_hat_test = M.predict(D.data['X_test'])
 ```
 
-    Info file found : /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_public.info
+    Info file found : /home/sylviepeng/projects/truck/starting_kit/input_data/xporters_public.info
     DataManager : xporters
     info:
     	usage = Sample dataset Traffic Volume data
@@ -679,9 +682,9 @@ write(result_name + '_test.predict', Y_hat_test)
 !ls $result_name*
 ```
 
-    [31msample_result_submission/xporters_test.predict[m[m
-    [31msample_result_submission/xporters_train.predict[m[m
-    [31msample_result_submission/xporters_valid.predict[m[m
+    sample_result_submission/xporters_test.predict
+    sample_result_submission/xporters_train.predict
+    sample_result_submission/xporters_valid.predict
 
 
 <h1>Le $1^{ier}$Point : les clusters</h1> 
@@ -816,7 +819,7 @@ ax2.legend()
 
 
 
-    <matplotlib.legend.Legend at 0x1a18acd128>
+    <matplotlib.legend.Legend at 0x7ff901e37ba8>
 
 
 
@@ -880,7 +883,7 @@ plt.legend()
 
     ValueError                                Traceback (most recent call last)
 
-    <ipython-input-17-3971a1d194f1> in <module>
+    <ipython-input-65-3971a1d194f1> in <module>
          24 #donc nous sommes bloqués pour une erreur de dimension
          25 X_test=np.linspace(-3.0, 4.0, num=38563)[:, np.newaxis]
     ---> 26 y_1 = regr_1.predict(X_test)
@@ -888,20 +891,20 @@ plt.legend()
          28 
 
 
-    /anaconda3/lib/python3.7/site-packages/sklearn/tree/tree.py in predict(self, X, check_input)
-        414         """
-        415         check_is_fitted(self, 'tree_')
-    --> 416         X = self._validate_X_predict(X, check_input)
-        417         proba = self.tree_.predict(X)
-        418         n_samples = X.shape[0]
+    /usr/local/lib/python3.6/dist-packages/sklearn/tree/_classes.py in predict(self, X, check_input)
+        417         """
+        418         check_is_fitted(self)
+    --> 419         X = self._validate_X_predict(X, check_input)
+        420         proba = self.tree_.predict(X)
+        421         n_samples = X.shape[0]
 
 
-    /anaconda3/lib/python3.7/site-packages/sklearn/tree/tree.py in _validate_X_predict(self, X, check_input)
-        386                              "match the input. Model n_features is %s and "
-        387                              "input n_features is %s "
-    --> 388                              % (self.n_features_, n_features))
-        389 
-        390         return X
+    /usr/local/lib/python3.6/dist-packages/sklearn/tree/_classes.py in _validate_X_predict(self, X, check_input)
+        389                              "match the input. Model n_features is %s and "
+        390                              "input n_features is %s "
+    --> 391                              % (self.n_features_, n_features))
+        392 
+        393         return X
 
 
     ValueError: Number of features of the model must match the input. Model n_features is 2 and input n_features is 1 
@@ -914,63 +917,232 @@ En essayant tous les types de $\textit{panda.plot}$, on s'est rendu compte que $
 
 
 ```python
-#EN attendant les donnees des autres binome, on copie les donnees de TP2 
 #pour la visualisation
 import pandas as pd
 
-model_name = ["Nearest Neighbors", "Linear SVM", "RBF SVM", "Gaussian Process",
-         "Decision Tree", "Random Forest", "Neural Net", "AdaBoost",
-         "Naive Bayes", "QDA"]
-data_df = pd.DataFrame(columns =["perf_tr", "std_tr", "perf_te", "std_te"])
-
-data_df.loc[model_name[0]] = [0.890110 ,0.018133 ,0.814818 ,0.025394]
-
-data_df.loc[model_name[1]] = [0.760862 ,0.012747 ,0.748730 ,0.013419]
-data_df.loc[model_name[2]] = [0.999367 ,0.001899 ,0.579652 ,0.019193]
-data_df.loc[model_name[3]] = [0.850530 ,0.032395 ,0.796938 ,0.011843]
-data_df.loc[model_name[4]] = [0.987433 ,0.016982 ,0.749261 ,0.028325]
-data_df.loc[model_name[5]] = [0.983304 ,0.011656 ,0.783340 ,0.020527]
-data_df.loc[model_name[6]] = [0.852333 ,0.024135 ,0.795255 ,0.011846]
-data_df.loc[model_name[7]] = [0.999398 ,0.001807 ,0.782927 ,0.024244]
-data_df.loc[model_name[8]] = [0.759021 ,0.017606 ,0.748764 ,0.020209]
-data_df.loc[model_name[9]] = [0.829892 ,0.020672 ,0.758330 ,0.032009]
+#stocker les scores de performance sur train data et test data
+data_df = pd.DataFrame(columns =['perf_tr', 'perf_te'])
 
 
+#on reprend les codes du sous-groupe "model" pour obtenir le resultat des scores.
+
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn import svm
+from sklearn import linear_model
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import DotProduct, WhiteKernel
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.linear_model import ElasticNet
+from sklearn import linear_model
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import GradientBoostingRegressor
+
+model_name = [
+    "Nearest Neighbors",
+    "ElasticNet",
+    "Decision tree",
+    "Random Forest",
+    "GradientBoosting",
+    "Gradient optimise",
+    "Forest optimise"]
+
+model_list = [                                                              
+    KNeighborsRegressor(2),                                                 
+    ElasticNet(random_state=0),                                             
+    DecisionTreeRegressor(),                                    
+    RandomForestRegressor(n_estimators=10),                                 
+    GradientBoostingRegressor(random_state=1, n_estimators=10),              
+   
+    GradientBoostingRegressor(random_state=2, n_estimators=100, max_features = 'auto',
+                             loss = 'huber',
+                             learning_rate = 0.1,
+                             criterion =  'friedman_mse'),                                               
+    
+    RandomForestRegressor(n_estimators=140,   
+                          max_features= 'auto',
+                          random_state= 5,   
+                          criterion= 'friedman_mse',    
+                          max_depth= 50 )     
+]
+
+trained_model_name = model_dir + data_name
+
+from sklearn import model_selection
+from sklearn.model_selection import train_test_split
+
+X_train = D.data['X_train']
+Y_train = D.data['Y_train']
+
+X_entrainement,X_validation,Y_entrainement,Y_validation = train_test_split(X_train,Y_train,test_size=0.33,random_state=42)
+    
+#pour les scores
+from sklearn.metrics import make_scorer
+from sklearn.model_selection import cross_val_score
+from libscores import get_metric
+metric_name, scoring_function = get_metric()
+
+
+for i in range(7):
+    M = model_list[i]
+    M.fit(X_entrainement,Y_entrainement)
+    
+    Y_hat_train = M.predict(D.data['X_train']) 
+    Y_hat_valid = M.predict(D.data['X_valid'])
+    Y_hat_test = M.predict(D.data['X_test'])
+    
+    print('\n',model_name[i])
+    print(metric_name, '= %5.4f' % scoring_function(Y_train, Y_hat_train))
+    scores_train = cross_val_score(M, X_entrainement, Y_entrainement, cv=5, scoring=make_scorer(scoring_function))   
+    scores_test = cross_val_score(M, X_validation, Y_validation, cv=5, scoring=make_scorer(scoring_function))
+    print('Cross-validation tr: %0.2f (+/- %0.2f)' % (scores_train.mean(), scores_train.std() * 2))
+    print('Cross-validation va: %0.2f (+/- %0.2f)' % (scores_test.mean(), scores_test.std() * 2))
+    
+#fin de code de {model}
+    data_df.loc[model_name[i]] = [scores_train.mean(), scores_test.mean()]
 ```
+
+    
+     Nearest Neighbors
+    r2_metric = 0.8343
+    Cross-validation tr: 0.69 (+/- 0.03)
+    Cross-validation va: 0.64 (+/- 0.02)
+    
+     ElasticNet
+    r2_metric = 0.1597
+    Cross-validation tr: -1.24 (+/- 5.61)
+    Cross-validation va: 0.16 (+/- 0.01)
+    
+     Decision tree
+    r2_metric = 0.9677
+    Cross-validation tr: 0.90 (+/- 0.01)
+    Cross-validation va: 0.90 (+/- 0.01)
+    
+     Random Forest
+    r2_metric = 0.9742
+    Cross-validation tr: 0.94 (+/- 0.00)
+    Cross-validation va: 0.94 (+/- 0.01)
+    
+     GradientBoosting
+    r2_metric = 0.7352
+    Cross-validation tr: 0.73 (+/- 0.00)
+    Cross-validation va: 0.74 (+/- 0.01)
+    
+     Gradient optimise
+    r2_metric = 0.9192
+    Cross-validation tr: 0.92 (+/- 0.01)
+    Cross-validation va: 0.92 (+/- 0.01)
+    
+     Forest optimise
+    r2_metric = 0.9784
+    Cross-validation tr: 0.94 (+/- 0.00)
+    Cross-validation va: 0.95 (+/- 0.01)
+
+
+
+```python
+data_df
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>perf_tr</th>
+      <th>perf_te</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>Nearest Neighbors</th>
+      <td>0.693376</td>
+      <td>0.639809</td>
+    </tr>
+    <tr>
+      <th>ElasticNet</th>
+      <td>-1.243847</td>
+      <td>0.160397</td>
+    </tr>
+    <tr>
+      <th>Decision tree</th>
+      <td>0.895976</td>
+      <td>0.898405</td>
+    </tr>
+    <tr>
+      <th>Random Forest</th>
+      <td>0.939103</td>
+      <td>0.939267</td>
+    </tr>
+    <tr>
+      <th>GradientBoosting</th>
+      <td>0.734432</td>
+      <td>0.737361</td>
+    </tr>
+    <tr>
+      <th>Gradient optimise</th>
+      <td>0.916239</td>
+      <td>0.919015</td>
+    </tr>
+    <tr>
+      <th>Forest optimise</th>
+      <td>0.944038</td>
+      <td>0.945060</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
 
 
 ```python
 data_df[['perf_tr', 'perf_te']].plot.bar()
 plt.ylim(0.5, 1)
-plt.ylabel("balanced_accuracy_score")
+plt.ylabel("r2_metric")
 ```
 
 
 
 
-    Text(0, 0.5, 'balanced_accuracy_score')
-
-
-
-
-![png](output_31_1.png)
-
-
-
-```python
-data_df[['perf_tr', 'perf_te']].plot.line()
-plt.ylabel("balanced_accuracy_score")
-```
-
-
-
-
-    Text(0, 0.5, 'balanced_accuracy_score')
+    Text(0, 0.5, 'r2_metric')
 
 
 
 
 ![png](output_32_1.png)
+
+
+
+```python
+data_df[['perf_tr', 'perf_te']].plot.line()
+plt.ylabel("r2-metric")
+```
+
+
+
+
+    Text(0, 0.5, 'r2-metric')
+
+
+
+
+![png](output_33_1.png)
 
 
 <div>
@@ -987,7 +1159,7 @@ D = DataManager(data_name, data_dir, replace_missing=True)
 print(D)
 ```
 
-    Info file found : /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_public.info
+    Info file found : /home/sylviepeng/projects/truck/starting_kit/input_data/xporters_public.info
     DataManager : xporters
     info:
     	usage = Sample dataset Traffic Volume data
@@ -1076,8 +1248,8 @@ Y_hat_test = M.predict(D.data['X_test'])
 print(Y_hat_train)
 ```
 
-    [ 785.64333333 4118.41177209 3494.91       ... 5717.20800309 4061.73350641
-     5597.73734994]
+    [  785.64333333  4118.41177209  3494.91       ...,  5717.20800309
+      4061.73350641  5597.73734994]
 
 
 <div>
@@ -1095,9 +1267,9 @@ write(result_name + '_test.predict', Y_hat_test)
 !ls $result_name*
 ```
 
-    [31msample_result_submission/xporters_test.predict[m[m
-    [31msample_result_submission/xporters_train.predict[m[m
-    [31msample_result_submission/xporters_valid.predict[m[m
+    sample_result_submission/xporters_test.predict
+    sample_result_submission/xporters_train.predict
+    sample_result_submission/xporters_valid.predict
 
 
 <div>
@@ -1144,7 +1316,7 @@ plt.show()
 ```
 
 
-![png](output_49_0.png)
+![png](output_50_0.png)
 
 
 <div>
@@ -1200,89 +1372,17 @@ Keep the sample code simple.
 !source activate python3; python $problem_dir/ingestion.py $data_dir $result_dir $problem_dir $model_dir
 ```
 
-    Could not find conda environment: python3
-    You can list all discoverable environments with `conda info --envs`.
-    
-    Using input_dir: /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data
-    Using output_dir: /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/sample_result_submission
-    Using program_dir: /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/ingestion_program
-    Using submission_dir: /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/sample_code_submission
-    
-    ========== Ingestion program version 6 ==========
-    
-    ************************************************
-    ******** Processing dataset Xporters ********
-    ************************************************
-    ========= Reading and converting data ==========
-    Info file found : /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_public.info
-    ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_feat.type
-    [+] Success in  0.00 sec
-    ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_train.data
-    Replace missing values by 0 (slow, sorry)
-    [+] Success in  0.70 sec
-    ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_train.solution
-    [+] Success in  0.13 sec
-    ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_valid.data
-    Replace missing values by 0 (slow, sorry)
-    [+] Success in  0.11 sec
-    ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_valid.solution
-    [+] Success in  0.00 sec
-    ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_test.data
-    Replace missing values by 0 (slow, sorry)
-    [+] Success in  0.08 sec
-    ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_test.solution
-    [+] Success in  0.00 sec
-    DataManager : xporters
-    info:
-    	usage = Sample dataset Traffic Volume data
-    	name = traffic
-    	task = regression
-    	target_type = Numerical
-    	feat_type = Numerical
-    	metric = r2_metric
-    	time_budget = 1200
-    	feat_num = 59
-    	target_num = 3
-    	label_num = 3
-    	train_num = 35
-    	valid_num = 35
-    	test_num = 35
-    	has_categorical = 0
-    	has_missing = 0
-    	is_sparse = 0
-    	format = dense
-    data:
-    	X_train = array(38563, 59)
-    	Y_train = array(38563,)
-    	X_valid = array(4820, 59)
-    	Y_valid = array(0,)
-    	X_test = array(4820, 59)
-    	Y_test = array(0,)
-    feat_type:	array(59,)
-    feat_idx:	array(59,)
-    
-    [+] Size of uploaded data  56.00 bytes
-    [+] Cumulated time budget (all tasks so far)  1200.00 sec
-    [+] Time budget for this task 1200.00 sec
-    [+] Remaining time after reading data 1198.92 sec
-    ======== Creating model ==========
-    **********************************************************
-    ****** Attempting to reload model to avoid training ******
-    **********************************************************
-    Model reloaded from: /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/sample_code_submission/xporters_model.pickle
-    [+] Model reloaded, no need to train!
-    PREDICT: dim(X)= [38563, 59]
-    PREDICT: dim(y)= [38563, 1]
-    PREDICT: dim(X)= [4820, 59]
-    PREDICT: dim(y)= [4820, 1]
-    PREDICT: dim(X)= [4820, 59]
-    PREDICT: dim(y)= [4820, 1]
-    [+] Prediction success, time spent so far  4.59 sec
-    ======== Saving results to: /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/sample_result_submission
-    [+] Results saved, time spent so far  4.76 sec
-    [+] End cycle, time left 1195.24 sec
-    [+] Done
-    [+] Overall time spent  8.13 sec ::  Overall time budget 1200.00 sec
+    /bin/sh: 1: source: not found
+    Using input_dir: /home/sylviepeng/projects/truck/starting_kit/input_data
+    Using output_dir: /home/sylviepeng/projects/truck/starting_kit/sample_result_submission
+    Using program_dir: /home/sylviepeng/projects/truck/starting_kit/ingestion_program
+    Using submission_dir: /home/sylviepeng/projects/truck/starting_kit/sample_code_submission
+    Traceback (most recent call last):
+      File "ingestion_program//ingestion.py", line 137, in <module>
+        import data_io                       # general purpose input/output functions
+      File "/home/sylviepeng/projects/truck/starting_kit/ingestion_program/data_io.py", line 39, in <module>
+        import yaml
+    ImportError: No module named yaml
 
 
 <div>
@@ -1295,10 +1395,11 @@ scoring_output_dir = 'scoring_output'
 !source activate python3; python $score_dir/score.py $data_dir $result_dir $scoring_output_dir
 ```
 
-    Could not find conda environment: python3
-    You can list all discoverable environments with `conda info --envs`.
-    
-    ======= Set 1 (Xporters_train): r2_metric(set1_score)=0.991777003139 =======
+    /bin/sh: 1: source: not found
+    Traceback (most recent call last):
+      File "scoring_program//score.py", line 22, in <module>
+        import yaml
+    ImportError: No module named yaml
 
 
 <div>
@@ -1321,6 +1422,6 @@ print("Submit one of these files:\n" + sample_code_submission + "\n" + sample_re
 ```
 
     Submit one of these files:
-    ../sample_code_submission_20-03-01-15-42.zip
-    ../sample_result_submission_20-03-01-15-42.zip
+    ../sample_code_submission_20-03-14-20-09.zip
+    ../sample_result_submission_20-03-14-20-09.zip
 
