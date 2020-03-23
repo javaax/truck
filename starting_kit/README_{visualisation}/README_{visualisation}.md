@@ -1,3 +1,4 @@
+
 <div>
 <h1>Solve Xporters traffic volume problem</h1>
 <em><font size="-2">Organisers : Alexis de Russ&eacute;, Florian Bertelli, Gaspard Donada--Vidal, Ghassen Chaabane, Moez Ezzeddine, Ziheng Li</font></em>
@@ -52,10 +53,6 @@ path.append(model_dir); path.append(problem_dir); path.append(score_dir);
 sns.set()
 ```
 
-    The autoreload extension is already loaded. To reload it, use:
-      %reload_ext autoreload
-
-
 <div>
     <h1> Step 1: Exploratory data analysis </h1>
 <p>
@@ -72,9 +69,9 @@ data_name = 'xporters'
 !ls $data_dir*
 ```
 
-    xporters_feat.name     xporters_test.data	xporters_valid.data
-    xporters_private.info  xporters_train.data
-    xporters_public.info   xporters_train.solution
+    xporters_feat.name      xporters_test.data      xporters_valid.data
+    xporters_private.info   xporters_train.data
+    xporters_public.info    xporters_train.solution
 
 
 For convenience, we load the data as a "pandas" data frame, so we can use "pandas" and "seaborn" built in functions to explore the data.
@@ -632,7 +629,7 @@ Y_hat_valid = M.predict(D.data['X_valid'])
 Y_hat_test = M.predict(D.data['X_test'])
 ```
 
-    Info file found : /home/sylviepeng/projects/truck/starting_kit/input_data/xporters_public.info
+    Info file found : /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_public.info
     DataManager : xporters
     info:
     	usage = Sample dataset Traffic Volume data
@@ -682,9 +679,9 @@ write(result_name + '_test.predict', Y_hat_test)
 !ls $result_name*
 ```
 
-    sample_result_submission/xporters_test.predict
-    sample_result_submission/xporters_train.predict
-    sample_result_submission/xporters_valid.predict
+    [31msample_result_submission/xporters_test.predict[m[m
+    [31msample_result_submission/xporters_train.predict[m[m
+    [31msample_result_submission/xporters_valid.predict[m[m
 
 
 <h1>Le $1^{ier}$Point : les clusters</h1> 
@@ -756,9 +753,10 @@ fig, (ax1, ax2) = plt.subplots(1, 2,figsize=(15,5))
 
 x=D.data['X_train']
 print(x.shape)
-Y=D.data['Y_train']
-print(Y.shape)
+Y= D.data['Y_train']
+Y[Y==0] = 0.1
 
+Y = np.log(Y)
 #on fait pca sur les données 
 scaler = StandardScaler()
 scaler.fit(x)
@@ -809,17 +807,17 @@ ax2.set_xlim(-3,5)
 ax2.set_title("Decision Tree Regression pour le 2nd paramètre")
 ax2.legend()
 
+
 ```
 
     (38563, 59)
-    (38563,)
     (38563, 2)
 
 
 
 
 
-    <matplotlib.legend.Legend at 0x7ff901e37ba8>
+    <matplotlib.legend.Legend at 0x1a1cbc7ba8>
 
 
 
@@ -827,88 +825,7 @@ ax2.legend()
 ![png](output_26_2.png)
 
 
-On a affiché deux graphiques : celui de gauche est la régression pour le paramètre 1 obtenu grâce au pca, et celui de droite celui de la régression pour le second paramètre du pca. Cependant, nous ne ne nous attendions pas à ce résultat. En effet, au début nous avions fait le code de la cellule juste en dessous de celle-ci mais il y a des problèmes de dimensions. Donc on a affiché en deux fois, un graphique pour chacun des deux paramètres. Cependant on doute des résultats obtenus car on ne sait pas trop ce qu'ils représentent. On trouve cela étrange de faire une régression sur des clusters puisque toutes les données sont donc tassées en clusters. Malheureusment, nous ne pouvons pas venir en soutien python le mercredi car nous avons cours, donc on se sent un peu bloqués sur des choses quz nous n'avons jamais faites. 
-
-
-```python
-x=D.data['X_train']
-print(x.shape)
-Y=D.data['Y_train']
-print(Y.shape)
-
-#on fait pca sur les données 
-scaler = StandardScaler()
-scaler.fit(x)
-scaled_data = scaler.transform(x)
-pca = PCA(n_components = 2)
-pca.fit(scaled_data)
-x_pca = pca.transform(scaled_data)
-
-print(x_pca.shape)
-regr_1 = DecisionTreeRegressor(max_depth=3)
-regr_2 = DecisionTreeRegressor(max_depth=5)
-regr_1.fit(x_pca, Y)
-regr_2.fit(x_pca, Y)
-
-
-# Predict
-#ici on ne sait pas comment faire pour que la dim soit de (538563,2)
-#au début on a fait ndarray mais après l'affichage devient incorrect
-#donc nous sommes bloqués pour une erreur de dimension
-X_test=np.linspace(-3.0, 4.0, num=38563)[:, np.newaxis]
-y_1 = regr_1.predict(X_test)
-y_2 = regr_2.predict(X_test)
-
-
-# Plot the results
-plt.figure()
-#ici c'est pareil car Y n'a qu'une seule dimension alors que pca a deux dimensions 
-plt.scatter(x_pca, Y, s=20, edgecolor="black",c="darkorange", label="data")
-plt.plot(X_test, y_1, color="cornflowerblue", label="max_depth=3", linewidth=2)
-plt.plot(X_test, y_2, color="yellowgreen", label="max_depth=5", linewidth=2)
-plt.set_xlabel("data")
-plt.set_ylabel("target")
-plt.set_xlim(-3,4)
-plt.set_title("Decision Tree Regression pour le 1er paramètre")
-plt.legend()
-```
-
-    (38563, 59)
-    (38563,)
-    (38563, 2)
-
-
-
-    ---------------------------------------------------------------------------
-
-    ValueError                                Traceback (most recent call last)
-
-    <ipython-input-65-3971a1d194f1> in <module>
-         24 #donc nous sommes bloqués pour une erreur de dimension
-         25 X_test=np.linspace(-3.0, 4.0, num=38563)[:, np.newaxis]
-    ---> 26 y_1 = regr_1.predict(X_test)
-         27 y_2 = regr_2.predict(X_test)
-         28 
-
-
-    /usr/local/lib/python3.6/dist-packages/sklearn/tree/_classes.py in predict(self, X, check_input)
-        417         """
-        418         check_is_fitted(self)
-    --> 419         X = self._validate_X_predict(X, check_input)
-        420         proba = self.tree_.predict(X)
-        421         n_samples = X.shape[0]
-
-
-    /usr/local/lib/python3.6/dist-packages/sklearn/tree/_classes.py in _validate_X_predict(self, X, check_input)
-        389                              "match the input. Model n_features is %s and "
-        390                              "input n_features is %s "
-    --> 391                              % (self.n_features_, n_features))
-        392 
-        393         return X
-
-
-    ValueError: Number of features of the model must match the input. Model n_features is 2 and input n_features is 1 
-
+On a affiché deux graphiques : celui de gauche est la régression pour le paramètre 1 obtenu grâce au pca, et celui de droite celui de la régression pour le second paramètre du pca. Nous les avons affichés dans un espace log pour mieux observer les résultats. Aisni on voit qu'il y a des données à l'écart, que notre mdèle n'arrive donc pas à prédire correctement. 
 
 <h1> Le $3^{ieme}$ Point: </h1>
 Nous n'avions pas tout compris sur ce troisième point mais finalement nous ne pouvons pas le faire sur nos données si les autres binômes ne nous ont pas rendu leur travail. Donc on a fait ce point en reprenant les données du tp2. Maintenant il ne restera plus qu'à attendre les données du reste de notre groupe.
@@ -1013,12 +930,12 @@ for i in range(7):
     Cross-validation va: 0.16 (+/- 0.01)
     
      Decision tree
-    r2_metric = 0.9677
+    r2_metric = 0.9664
     Cross-validation tr: 0.90 (+/- 0.01)
     Cross-validation va: 0.90 (+/- 0.01)
     
      Random Forest
-    r2_metric = 0.9742
+    r2_metric = 0.9745
     Cross-validation tr: 0.94 (+/- 0.00)
     Cross-validation va: 0.94 (+/- 0.01)
     
@@ -1081,13 +998,13 @@ data_df
     </tr>
     <tr>
       <th>Decision tree</th>
-      <td>0.895976</td>
-      <td>0.898405</td>
+      <td>0.895849</td>
+      <td>0.896931</td>
     </tr>
     <tr>
       <th>Random Forest</th>
-      <td>0.939103</td>
-      <td>0.939267</td>
+      <td>0.939186</td>
+      <td>0.939920</td>
     </tr>
     <tr>
       <th>GradientBoosting</th>
@@ -1101,7 +1018,7 @@ data_df
     </tr>
     <tr>
       <th>Forest optimise</th>
-      <td>0.944038</td>
+      <td>0.944036</td>
       <td>0.945060</td>
     </tr>
   </tbody>
@@ -1125,24 +1042,25 @@ plt.ylabel("r2_metric")
 
 
 
-![png](output_32_1.png)
+![png](output_31_1.png)
 
 
 
 ```python
 data_df[['perf_tr', 'perf_te']].plot.line()
 plt.ylabel("r2-metric")
+plt.xlabel(model_name)
 ```
 
 
 
 
-    Text(0, 0.5, 'r2-metric')
+    Text(0.5, 0, "['Nearest Neighbors', 'ElasticNet', 'Decision tree', 'Random Forest', 'GradientBoosting', 'Gradient optimise', 'Forest optimise']")
 
 
 
 
-![png](output_33_1.png)
+![png](output_32_1.png)
 
 
 <div>
@@ -1159,7 +1077,7 @@ D = DataManager(data_name, data_dir, replace_missing=True)
 print(D)
 ```
 
-    Info file found : /home/sylviepeng/projects/truck/starting_kit/input_data/xporters_public.info
+    Info file found : /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_public.info
     DataManager : xporters
     info:
     	usage = Sample dataset Traffic Volume data
@@ -1248,8 +1166,8 @@ Y_hat_test = M.predict(D.data['X_test'])
 print(Y_hat_train)
 ```
 
-    [  785.64333333  4118.41177209  3494.91       ...,  5717.20800309
-      4061.73350641  5597.73734994]
+    [ 785.64333333 4118.41177209 3494.91       ... 5717.20800309 4061.73350641
+     5597.73734994]
 
 
 <div>
@@ -1267,9 +1185,9 @@ write(result_name + '_test.predict', Y_hat_test)
 !ls $result_name*
 ```
 
-    sample_result_submission/xporters_test.predict
-    sample_result_submission/xporters_train.predict
-    sample_result_submission/xporters_valid.predict
+    [31msample_result_submission/xporters_test.predict[m[m
+    [31msample_result_submission/xporters_train.predict[m[m
+    [31msample_result_submission/xporters_valid.predict[m[m
 
 
 <div>
@@ -1316,7 +1234,7 @@ plt.show()
 ```
 
 
-![png](output_50_0.png)
+![png](output_49_0.png)
 
 
 <div>
@@ -1372,17 +1290,89 @@ Keep the sample code simple.
 !source activate python3; python $problem_dir/ingestion.py $data_dir $result_dir $problem_dir $model_dir
 ```
 
-    /bin/sh: 1: source: not found
-    Using input_dir: /home/sylviepeng/projects/truck/starting_kit/input_data
-    Using output_dir: /home/sylviepeng/projects/truck/starting_kit/sample_result_submission
-    Using program_dir: /home/sylviepeng/projects/truck/starting_kit/ingestion_program
-    Using submission_dir: /home/sylviepeng/projects/truck/starting_kit/sample_code_submission
-    Traceback (most recent call last):
-      File "ingestion_program//ingestion.py", line 137, in <module>
-        import data_io                       # general purpose input/output functions
-      File "/home/sylviepeng/projects/truck/starting_kit/ingestion_program/data_io.py", line 39, in <module>
-        import yaml
-    ImportError: No module named yaml
+    Could not find conda environment: python3
+    You can list all discoverable environments with `conda info --envs`.
+    
+    Using input_dir: /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data
+    Using output_dir: /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/sample_result_submission
+    Using program_dir: /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/ingestion_program
+    Using submission_dir: /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/sample_code_submission
+    
+    ========== Ingestion program version 6 ==========
+    
+    ************************************************
+    ******** Processing dataset Xporters ********
+    ************************************************
+    ========= Reading and converting data ==========
+    Info file found : /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_public.info
+    ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_feat.type
+    [+] Success in  0.00 sec
+    ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_train.data
+    Replace missing values by 0 (slow, sorry)
+    [+] Success in  0.43 sec
+    ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_train.solution
+    [+] Success in  0.06 sec
+    ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_valid.data
+    Replace missing values by 0 (slow, sorry)
+    [+] Success in  0.08 sec
+    ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_valid.solution
+    [+] Success in  0.00 sec
+    ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_test.data
+    Replace missing values by 0 (slow, sorry)
+    [+] Success in  0.06 sec
+    ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_test.solution
+    [+] Success in  0.00 sec
+    DataManager : xporters
+    info:
+    	usage = Sample dataset Traffic Volume data
+    	name = traffic
+    	task = regression
+    	target_type = Numerical
+    	feat_type = Numerical
+    	metric = r2_metric
+    	time_budget = 1200
+    	feat_num = 59
+    	target_num = 3
+    	label_num = 3
+    	train_num = 35
+    	valid_num = 35
+    	test_num = 35
+    	has_categorical = 0
+    	has_missing = 0
+    	is_sparse = 0
+    	format = dense
+    data:
+    	X_train = array(38563, 59)
+    	Y_train = array(38563,)
+    	X_valid = array(4820, 59)
+    	Y_valid = array(0,)
+    	X_test = array(4820, 59)
+    	Y_test = array(0,)
+    feat_type:	array(59,)
+    feat_idx:	array(59,)
+    
+    [+] Size of uploaded data  56.00 bytes
+    [+] Cumulated time budget (all tasks so far)  1200.00 sec
+    [+] Time budget for this task 1200.00 sec
+    [+] Remaining time after reading data 1199.33 sec
+    ======== Creating model ==========
+    **********************************************************
+    ****** Attempting to reload model to avoid training ******
+    **********************************************************
+    Model reloaded from: /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/sample_code_submission/xporters_model.pickle
+    [+] Model reloaded, no need to train!
+    PREDICT: dim(X)= [38563, 59]
+    PREDICT: dim(y)= [38563, 1]
+    PREDICT: dim(X)= [4820, 59]
+    PREDICT: dim(y)= [4820, 1]
+    PREDICT: dim(X)= [4820, 59]
+    PREDICT: dim(y)= [4820, 1]
+    [+] Prediction success, time spent so far  2.75 sec
+    ======== Saving results to: /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/sample_result_submission
+    [+] Results saved, time spent so far  2.83 sec
+    [+] End cycle, time left 1197.17 sec
+    [+] Done
+    [+] Overall time spent  5.80 sec ::  Overall time budget 1200.00 sec
 
 
 <div>
@@ -1395,11 +1385,10 @@ scoring_output_dir = 'scoring_output'
 !source activate python3; python $score_dir/score.py $data_dir $result_dir $scoring_output_dir
 ```
 
-    /bin/sh: 1: source: not found
-    Traceback (most recent call last):
-      File "scoring_program//score.py", line 22, in <module>
-        import yaml
-    ImportError: No module named yaml
+    Could not find conda environment: python3
+    You can list all discoverable environments with `conda info --envs`.
+    
+    ======= Set 1 (Xporters_train): r2_metric(set1_score)=0.991777003139 =======
 
 
 <div>
@@ -1422,6 +1411,11 @@ print("Submit one of these files:\n" + sample_code_submission + "\n" + sample_re
 ```
 
     Submit one of these files:
-    ../sample_code_submission_20-03-14-20-09.zip
-    ../sample_result_submission_20-03-14-20-09.zip
+    ../sample_code_submission_20-03-23-12-01.zip
+    ../sample_result_submission_20-03-23-12-01.zip
 
+
+
+```python
+
+```
