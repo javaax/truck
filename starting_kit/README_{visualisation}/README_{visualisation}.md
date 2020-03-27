@@ -1,4 +1,3 @@
-
 <div>
 <h1>Solve Xporters traffic volume problem</h1>
 <em><font size="-2">Organisers : Alexis de Russ&eacute;, Florian Bertelli, Gaspard Donada--Vidal, Ghassen Chaabane, Moez Ezzeddine, Ziheng Li</font></em>
@@ -69,9 +68,9 @@ data_name = 'xporters'
 !ls $data_dir*
 ```
 
-    xporters_feat.name      xporters_test.data      xporters_valid.data
-    xporters_private.info   xporters_train.data
-    xporters_public.info    xporters_train.solution
+    xporters_feat.name     xporters_test.data	xporters_valid.data
+    xporters_private.info  xporters_train.data
+    xporters_public.info   xporters_train.solution
 
 
 For convenience, we load the data as a "pandas" data frame, so we can use "pandas" and "seaborn" built in functions to explore the data.
@@ -514,11 +513,6 @@ data.describe()
 
 
 ```python
-
-```
-
-
-```python
 plt.figure(figsize = (5,5))
 sns.distplot(data['target'], bins=50)
 plt.title('The distribution of the traffic volume')
@@ -526,7 +520,7 @@ plt.show()
 ```
 
 
-![png](output_11_0.png)
+![png](output_10_0.png)
 
 
 
@@ -555,7 +549,7 @@ plt.show()
 ```
 
 
-![png](output_12_0.png)
+![png](output_11_0.png)
 
 
 
@@ -570,7 +564,7 @@ plt.title('Correlation Matrix', fontsize=16);
 ```
 
 
-![png](output_13_0.png)
+![png](output_12_0.png)
 
 
 
@@ -603,86 +597,10 @@ plt.show()
 ```
 
 
-![png](output_15_0.png)
+![png](output_14_0.png)
 
 
 <h3>ci dessous est la partie que l'on modifie</h3>
-
-
-```python
-from data_manager import DataManager
-D = DataManager(data_name, data_dir, replace_missing=True)
-print(D)
-from data_io import write
-from model import model
-# Uncomment the next line to show the code of the model
-# ??model 
-M = model()
-trained_model_name = model_dir + data_name
-# Uncomment the next line to re-load an already trained model
-M = M.load(trained_model_name)
-X_train = D.data['X_train']
-Y_train = D.data['Y_train']
-if not(M.is_trained) : M.fit(X_train, Y_train)                     
-Y_hat_train = M.predict(D.data['X_train']) # Optional, not really needed to test on taining examples
-Y_hat_valid = M.predict(D.data['X_valid'])
-Y_hat_test = M.predict(D.data['X_test'])
-```
-
-    Info file found : /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_public.info
-    DataManager : xporters
-    info:
-    	usage = Sample dataset Traffic Volume data
-    	name = traffic
-    	task = regression
-    	target_type = Numerical
-    	feat_type = Numerical
-    	metric = r2_metric
-    	time_budget = 1200
-    	feat_num = 59
-    	target_num = 3
-    	label_num = 3
-    	train_num = 35
-    	valid_num = 35
-    	test_num = 35
-    	has_categorical = 0
-    	has_missing = 0
-    	is_sparse = 0
-    	format = dense
-    data:
-    	X_train = array(38563, 59)
-    	Y_train = array(38563,)
-    	X_valid = array(4820, 59)
-    	Y_valid = array(0,)
-    	X_test = array(4820, 59)
-    	Y_test = array(0,)
-    feat_type:	array(59,)
-    feat_idx:	array(0,)
-    
-    Model reloaded from: sample_code_submission/xporters_model.pickle
-    PREDICT: dim(X)= [38563, 59]
-    PREDICT: dim(y)= [38563, 1]
-    PREDICT: dim(X)= [4820, 59]
-    PREDICT: dim(y)= [4820, 1]
-    PREDICT: dim(X)= [4820, 59]
-    PREDICT: dim(y)= [4820, 1]
-
-
-
-```python
-M.save(trained_model_name)                 
-result_name = result_dir + data_name
-from data_io import write
-write(result_name + '_train.predict', Y_hat_train)
-write(result_name + '_valid.predict', Y_hat_valid)
-write(result_name + '_test.predict', Y_hat_test)
-!ls $result_name*
-```
-
-    [31msample_result_submission/xporters_test.predict[m[m
-    [31msample_result_submission/xporters_train.predict[m[m
-    [31msample_result_submission/xporters_valid.predict[m[m
-
 
 <h1>Le $1^{ier}$Point : les clusters</h1> 
 
@@ -694,51 +612,41 @@ write(result_name + '_test.predict', Y_hat_test)
 
 
 ```python
-from sklearn.cluster import KMeans
-from sklearn.datasets import make_blobs
+
+def kmoy (x,Y): 
+    from sklearn.cluster import KMeans
+    from sklearn.datasets import make_blobs
+
 
 #exemple pour visualiser les clusters avec la méthode des K-moyennes
-plt.figure(figsize=(12, 12))
+    plt.figure(figsize=(12, 12))
 
-n_samples = 38563
-random_state = 170
+    random_state = 170
 
-x=D.data['X_train']
-print(x.shape)
-Y=D.data['Y_train']
-print(Y.shape)
+        #on fait pca sur les données 
+    scaler = StandardScaler()
+    scaler.fit(x)
+    scaled_data = scaler.transform(x)
+    pca = PCA(n_components = 2)
+    pca.fit(scaled_data)
+    x_pca = pca.transform(scaled_data)
+    if(x_pca.shape== (38563, 2)):
+        y_pred = KMeans(n_clusters=2, random_state=random_state).fit_predict(x_pca)
 
-#on fait pca sur les données 
-scaler = StandardScaler()
-scaler.fit(x)
-scaled_data = scaler.transform(x)
-pca = PCA(n_components = 2)
-pca.fit(scaled_data)
-x_pca = pca.transform(scaled_data)
-
-y_pred = KMeans(n_clusters=2, random_state=random_state).fit_predict(x_pca)
-
-plt.scatter(x_pca[:, 0], x_pca[:,1], c=Y)
-plt.title("Visualisation des clusters")
-#on essaye d'afficher la légende c'est-à-dire la couleur des points correspond à une certaine quantité 
-#en l'occurence, Y est en fait target donc le nombre de voitures
-#qui passent donc on veut savoir à combien de voitures correspondent les couleurs 
-cb = plt.colorbar()
-cb.ax.tick_params(labelsize=12)
-plt.show()
+        plt.scatter(x_pca[:, 0], x_pca[:,1], c=Y)
+        plt.title("Visualisation des clusters")
+            #on essaye d'afficher la légende c'est-à-dire la couleur des points correspond à une certaine quantité 
+            #en l'occurence, Y est en fait target donc le nombre de voitures
+            #qui passent donc on veut savoir à combien de voitures correspondent les couleurs 
+        cb = plt.colorbar()
+        cb.ax.tick_params(labelsize=12)
+        plt.show()
+    return 0
 ```
-
-    (38563, 59)
-    (38563,)
-
-
-
-![png](output_21_1.png)
-
 
 Ici on peut bien visualiser les clusters et on peut voir que si la couleur se rapproche du violet, c'est que peu de voitures sont passées, et à l'inverse, vers le beige c'est là où le plus de voitures passent.
 
-<h1>Le $2^{ieme}$Point : Classifier</h1>
+<h1>Le $2^{ieme}$Point : Regressor</h1>
 
 <div>
     <h2><span style="color:blue"> Ici on commence par essayer d'afficher une regression des données</span></h2>
@@ -749,83 +657,68 @@ Nous reprenons ce que nous avions fait la dernière fois sur tout le jeu de donn
 
 
 ```python
-fig, (ax1, ax2) = plt.subplots(1, 2,figsize=(15,5))
+def regressor (x, Y):
+    fig, (ax1, ax2) = plt.subplots(1, 2,figsize=(15,5))
+    
+    Y[Y==0] = 0.1
 
-x=D.data['X_train']
-print(x.shape)
-Y= D.data['Y_train']
-Y[Y==0] = 0.1
+    Y = np.log(Y)
+    #on fait pca sur les données 
+    scaler = StandardScaler()
+    scaler.fit(x)
+    scaled_data = scaler.transform(x)
+    pca = PCA(n_components = 2)
+    pca.fit(scaled_data)
+    x_pca = pca.transform(scaled_data)
+    
+    if(x_pca.shape== (38563, 2)):
 
-Y = np.log(Y)
-#on fait pca sur les données 
-scaler = StandardScaler()
-scaler.fit(x)
-scaled_data = scaler.transform(x)
-pca = PCA(n_components = 2)
-pca.fit(scaled_data)
-x_pca = pca.transform(scaled_data)
+        x1=x_pca[:,0][:, np.newaxis]
+        x2=x_pca[:,1][:, np.newaxis]
 
-x1=x_pca[:,0][:, np.newaxis]
-x2=x_pca[:,1][:, np.newaxis]
-print(x_pca.shape)
-regr_1 = DecisionTreeRegressor(max_depth=3)
-regr_1b = DecisionTreeRegressor(max_depth=5)
-regr_2 = DecisionTreeRegressor(max_depth=3)
-regr_2b = DecisionTreeRegressor(max_depth=5)
-regr_1.fit(x1, Y)
-regr_1b.fit(x1, Y)
-regr_2.fit(x2, Y)
-regr_2b.fit(x2, Y)
-
-
-# Predict
-X_test1= np.linspace(-3.0, 4.0, num=38563)[:, np.newaxis]
-X_test2= np.linspace(-3.0, 5.0, num=38563)[:, np.newaxis]
-y_1 = regr_1.predict(X_test1)
-y_1b = regr_1b.predict(X_test1)
-y_2 = regr_2.predict(X_test2)
-y_2b = regr_2b.predict(X_test2)
+        regr_1 = DecisionTreeRegressor(max_depth=4)
+        regr_1b = DecisionTreeRegressor(max_depth=7)
+        regr_2 = DecisionTreeRegressor(max_depth=4)
+        regr_2b = DecisionTreeRegressor(max_depth=7)
+        regr_1.fit(x1, Y)
+        regr_1b.fit(x1, Y)
+        regr_2.fit(x2, Y)
+        regr_2b.fit(x2, Y)
 
 
-# Plot the results
-#plt.figure()
-ax1.scatter(x1, Y, s=20, edgecolor="black",c="darkorange", label="data")
-ax1.plot(X_test1, y_1, color="cornflowerblue", label="max_depth=3", linewidth=2)
-ax1.plot(X_test1, y_1b, color="yellowgreen", label="max_depth=5", linewidth=2)
-ax1.set_xlabel("data")
-ax1.set_ylabel("target")
-ax1.set_xlim(-3,4)
-ax1.set_title("Decision Tree Regression pour le 1er paramètre")
-ax1.legend()
+        # Predict
+        X_test1= np.linspace(-3.0, 4.0, num=x.size)[:, np.newaxis]
+        X_test2= np.linspace(-3.0, 5.0, num=x.size)[:, np.newaxis]
+        y_1 = regr_1.predict(X_test1)
+        y_1b = regr_1b.predict(X_test1)
+        y_2 = regr_2.predict(X_test2)
+        y_2b = regr_2b.predict(X_test2)
+        
+        if(y_1.shape==y_1b.shape and y_1b.shape==y_2.shape and y_2.shape==y_2b.shape):
+            # Plot the results
+            plt.figure()
+            ax1.scatter(x1, Y, s=20, edgecolor="black",c="darkorange", label="data")
+            ax1.plot(X_test1, y_1, color="cornflowerblue", label="max_depth=4", linewidth=2)
+            ax1.plot(X_test1, y_1b, color="yellowgreen", label="max_depth=7", linewidth=2)
+            ax1.set_xlabel("data")
+            ax1.set_ylabel("target")
+            ax1.set_xlim(-3,4)
+            ax1.set_title("Decision Tree Regression pour le 1er paramètre")
+            ax1.legend()
 
-ax2.scatter(x2, Y, s=20, edgecolor="black",c="darkorange", label="data")
-ax2.plot(X_test2, y_2, color="cornflowerblue", label="max_depth=3", linewidth=2)
-ax2.plot(X_test2, y_2b, color="yellowgreen", label="max_depth=5", linewidth=2)
-ax2.set_xlabel("data")
-ax2.set_ylabel("target")
-ax2.set_xlim(-3,5)
-ax2.set_title("Decision Tree Regression pour le 2nd paramètre")
-ax2.legend()
-
-
+            ax2.scatter(x2, Y, s=20, edgecolor="black",c="darkorange", label="data")
+            ax2.plot(X_test2, y_2, color="cornflowerblue", label="max_depth=4", linewidth=2)
+            ax2.plot(X_test2, y_2b, color="yellowgreen", label="max_depth=7", linewidth=2)
+            ax2.set_xlabel("data")
+            ax2.set_ylabel("target")
+            ax2.set_xlim(-3,5)
+            ax2.set_title("Decision Tree Regression pour le 2nd paramètre")
+            ax2.legend()
+            plt.show() #lorsqu'on n'ajoute pas cette ligne, dans le main() au-dessous,
+                     #le graphe s'affiche après avoir calculer tous les scores de la fonction comparePerformance
+            
+    return 0
 ```
-
-    (38563, 59)
-    (38563, 2)
-
-
-
-
-
-    <matplotlib.legend.Legend at 0x1a1cbc7ba8>
-
-
-
-
-![png](output_26_2.png)
-
-
-On a affiché deux graphiques : celui de gauche est la régression pour le paramètre 1 obtenu grâce au pca, et celui de droite celui de la régression pour le second paramètre du pca. Nous les avons affichés dans un espace log pour mieux observer les résultats. Aisni on voit qu'il y a des données à l'écart, que notre mdèle n'arrive donc pas à prédire correctement. 
 
 <h1> Le $3^{ieme}$ Point: </h1>
 Nous n'avions pas tout compris sur ce troisième point mais finalement nous ne pouvons pas le faire sur nos données si les autres binômes ne nous ont pas rendu leur travail. Donc on a fait ce point en reprenant les données du tp2. Maintenant il ne restera plus qu'à attendre les données du reste de notre groupe.
@@ -834,90 +727,152 @@ En essayant tous les types de $\textit{panda.plot}$, on s'est rendu compte que $
 
 
 ```python
-#pour la visualisation
-import pandas as pd
-
-#stocker les scores de performance sur train data et test data
-data_df = pd.DataFrame(columns =['perf_tr', 'perf_te'])
-
-
-#on reprend les codes du sous-groupe "model" pour obtenir le resultat des scores.
-
-from sklearn.neighbors import KNeighborsRegressor
-from sklearn import svm
-from sklearn import linear_model
-from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import DotProduct, WhiteKernel
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.linear_model import ElasticNet
-from sklearn import linear_model
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.ensemble import GradientBoostingRegressor
-
-model_name = [
-    "Nearest Neighbors",
-    "ElasticNet",
-    "Decision tree",
-    "Random Forest",
-    "GradientBoosting",
-    "Gradient optimise",
-    "Forest optimise"]
-
-model_list = [                                                              
-    KNeighborsRegressor(2),                                                 
-    ElasticNet(random_state=0),                                             
-    DecisionTreeRegressor(),                                    
-    RandomForestRegressor(n_estimators=10),                                 
-    GradientBoostingRegressor(random_state=1, n_estimators=10),              
-   
-    GradientBoostingRegressor(random_state=2, n_estimators=100, max_features = 'auto',
-                             loss = 'huber',
-                             learning_rate = 0.1,
-                             criterion =  'friedman_mse'),                                               
+def comparePerformance(model_name, model_list, D, bar=True,line=True):
+    #pour la visualisation
+    import pandas as pd
+    #stocker les scores de performance sur train data et test data
+    data_df = pd.DataFrame(columns =['perf_tr', 'perf_te'])
     
-    RandomForestRegressor(n_estimators=140,   
-                          max_features= 'auto',
-                          random_state= 5,   
-                          criterion= 'friedman_mse',    
-                          max_depth= 50 )     
-]
-
-trained_model_name = model_dir + data_name
-
-from sklearn import model_selection
-from sklearn.model_selection import train_test_split
-
-X_train = D.data['X_train']
-Y_train = D.data['Y_train']
-
-X_entrainement,X_validation,Y_entrainement,Y_validation = train_test_split(X_train,Y_train,test_size=0.33,random_state=42)
+    #pour les données 
+    from sklearn import model_selection
+    from sklearn.model_selection import train_test_split  
+    X_train = D.data['X_train']
+    Y_train = D.data['Y_train']
+    X_entrainement,X_validation,Y_entrainement,Y_validation = train_test_split(X_train,Y_train,test_size=0.33,random_state=42)
     
-#pour les scores
-from sklearn.metrics import make_scorer
-from sklearn.model_selection import cross_val_score
-from libscores import get_metric
-metric_name, scoring_function = get_metric()
+    #pour les scores
+    from sklearn.metrics import make_scorer
+    from sklearn.model_selection import cross_val_score
+    from libscores import get_metric
+    metric_name, scoring_function = get_metric()
 
-
-for i in range(7):
-    M = model_list[i]
-    M.fit(X_entrainement,Y_entrainement)
+    for i in range(len(model_list)):
+        M = model_list[i]
+        M.fit(X_entrainement,Y_entrainement)
     
-    Y_hat_train = M.predict(D.data['X_train']) 
-    Y_hat_valid = M.predict(D.data['X_valid'])
-    Y_hat_test = M.predict(D.data['X_test'])
+        Y_hat_train = M.predict(D.data['X_train']) 
+        Y_hat_valid = M.predict(D.data['X_valid'])
+        Y_hat_test = M.predict(D.data['X_test'])
     
-    print('\n',model_name[i])
-    print(metric_name, '= %5.4f' % scoring_function(Y_train, Y_hat_train))
-    scores_train = cross_val_score(M, X_entrainement, Y_entrainement, cv=5, scoring=make_scorer(scoring_function))   
-    scores_test = cross_val_score(M, X_validation, Y_validation, cv=5, scoring=make_scorer(scoring_function))
-    print('Cross-validation tr: %0.2f (+/- %0.2f)' % (scores_train.mean(), scores_train.std() * 2))
-    print('Cross-validation va: %0.2f (+/- %0.2f)' % (scores_test.mean(), scores_test.std() * 2))
+        print('\n',model_name[i])
+        print(metric_name, '= %5.4f' % scoring_function(Y_train, Y_hat_train))
+        scores_train = cross_val_score(M, X_entrainement, Y_entrainement, cv=5, scoring=make_scorer(scoring_function))   
+        scores_test = cross_val_score(M, X_validation, Y_validation, cv=5, scoring=make_scorer(scoring_function))
+        print('Cross-validation tr: %0.2f (+/- %0.2f)' % (scores_train.mean(), scores_train.std() * 2))
+        print('Cross-validation va: %0.2f (+/- %0.2f)' % (scores_test.mean(), scores_test.std() * 2))
     
-#fin de code de {model}
-    data_df.loc[model_name[i]] = [scores_train.mean(), scores_test.mean()]
+        #fin de code de {model}
+        data_df.loc[model_name[i]] = [scores_train.mean(), scores_test.mean()]
+        
+    if bar:
+        data_df[['perf_tr', 'perf_te']].plot.bar()
+        plt.ylim(0.5, 1)
+        plt.ylabel(metric_name)
+        plt.title("performance des modèles en histogramme")
+    if line:
+        data_df[['perf_tr', 'perf_te']].plot.line()
+        plt.xticks(rotation=270)
+        plt.ylabel(metric_name)
+        plt.title("performance des modèles en ligne")
+        
+    return data_df
 ```
 
+#### Main
+
+
+```python
+def main() :
+    from data_manager import DataManager
+    D = DataManager(data_name, data_dir, replace_missing=True)
+
+    #les données
+    X=D.data['X_train']
+    Y=D.data['Y_train']
+    
+    #on veut visualiser les clusters grâce aux k moyennes
+    kmoy(X,Y)
+    print("")
+    
+    #régression
+    print("Régression des données ")
+    regressor(X,Y)
+    
+    #comparaison de performance
+    #on reprend des codes du sous-groupe "model" pour obtenir le resultat des scores.
+    from sklearn.neighbors import KNeighborsRegressor
+    from sklearn import svm,linear_model
+    from sklearn.gaussian_process import GaussianProcessRegressor
+    from sklearn.gaussian_process.kernels import DotProduct, WhiteKernel
+    from sklearn.tree import DecisionTreeRegressor
+    from sklearn.linear_model import ElasticNet
+    from sklearn.ensemble import RandomForestRegressor,GradientBoostingRegressor
+
+    model_name = [
+       "Nearest Neighbors",
+       "ElasticNet",
+       "Decision tree",
+       "Random Forest",
+       "GradientBoosting",
+       "Gradient optimise",
+       "Forest optimise"]
+
+    model_list = [                                                              
+       KNeighborsRegressor(2),                                                 
+       ElasticNet(random_state=0),                                             
+       DecisionTreeRegressor(),                                    
+       RandomForestRegressor(n_estimators=10),                                 
+       GradientBoostingRegressor(random_state=1, n_estimators=10),              
+   
+       GradientBoostingRegressor(random_state=2, n_estimators=100, max_features = 'auto',
+                                 loss = 'huber',
+                                 learning_rate = 0.1,
+                                 criterion =  'friedman_mse'),                                               
+    
+       RandomForestRegressor(n_estimators=140,   
+                             max_features= 'auto',
+                             random_state= 5,   
+                             criterion= 'friedman_mse',    
+                             max_depth= 50 )     
+       ]
+    #comparer la performance des modèles dans model_list sur D.data
+    print("la performance")
+    data_df = comparePerformance(model_name, model_list, D)
+   
+
+```
+
+On a affiché deux graphiques : celui de gauche est la régression pour le paramètre 1 obtenu grâce au pca, et celui de droite celui de la régression pour le second paramètre du pca. Nous les avons affichés dans un espace log pour mieux observer les résultats. Aisni on voit qu'il y a des données à l'écart, que notre mdèle n'arrive donc pas à prédire correctement. 
+
+
+```python
+main()
+```
+
+    Info file found : /home/sylviepeng/projects/truck/starting_kit/input_data/xporters_public.info
+
+
+
+![png](output_29_1.png)
+
+
+    
+    Régression des données 
+
+
+    /home/sylviepeng/.local/lib/python3.6/site-packages/IPython/core/pylabtools.py:132: UserWarning: Creating legend with loc="best" can be slow with large amounts of data.
+      fig.canvas.print_figure(bytes_io, **kw)
+
+
+
+![png](output_29_4.png)
+
+
+
+    <Figure size 432x288 with 0 Axes>
+
+
+    la performance
     
      Nearest Neighbors
     r2_metric = 0.8343
@@ -930,12 +885,12 @@ for i in range(7):
     Cross-validation va: 0.16 (+/- 0.01)
     
      Decision tree
-    r2_metric = 0.9664
+    r2_metric = 0.9668
     Cross-validation tr: 0.90 (+/- 0.01)
     Cross-validation va: 0.90 (+/- 0.01)
     
      Random Forest
-    r2_metric = 0.9745
+    r2_metric = 0.9749
     Cross-validation tr: 0.94 (+/- 0.00)
     Cross-validation va: 0.94 (+/- 0.01)
     
@@ -956,89 +911,106 @@ for i in range(7):
 
 
 
-```python
-data_df
-```
+![png](output_29_7.png)
 
 
 
-
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>perf_tr</th>
-      <th>perf_te</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>Nearest Neighbors</th>
-      <td>0.693376</td>
-      <td>0.639809</td>
-    </tr>
-    <tr>
-      <th>ElasticNet</th>
-      <td>-1.243847</td>
-      <td>0.160397</td>
-    </tr>
-    <tr>
-      <th>Decision tree</th>
-      <td>0.895849</td>
-      <td>0.896931</td>
-    </tr>
-    <tr>
-      <th>Random Forest</th>
-      <td>0.939186</td>
-      <td>0.939920</td>
-    </tr>
-    <tr>
-      <th>GradientBoosting</th>
-      <td>0.734432</td>
-      <td>0.737361</td>
-    </tr>
-    <tr>
-      <th>Gradient optimise</th>
-      <td>0.916239</td>
-      <td>0.919015</td>
-    </tr>
-    <tr>
-      <th>Forest optimise</th>
-      <td>0.944036</td>
-      <td>0.945060</td>
-    </tr>
-  </tbody>
-</table>
-</div>
+![png](output_29_8.png)
 
 
+On garde une version sans $main$ du $3^{ieme}$ point pour obtenir $data_df$ une fois pour tous, car c'est plus rapide pour le test et pour les autres modifications éventuelles
+L'excecution est long pour calculer les scores donc enlève les commentaires avant $""""""$ quand on utilise pas ces codes
 
 
 ```python
-data_df[['perf_tr', 'perf_te']].plot.bar()
-plt.ylim(0.5, 1)
-plt.ylabel("r2_metric")
+#"""
+
+from data_manager import DataManager
+D = DataManager(data_name, data_dir, replace_missing=True)
+#les données
+X=D.data['X_train']
+Y=D.data['Y_train']
+
+#comparaison de performance
+#on reprend des codes du sous-groupe "model" pour obtenir le resultat des scores.
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn import svm,linear_model
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import DotProduct, WhiteKernel
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.linear_model import ElasticNet
+from sklearn.ensemble import RandomForestRegressor,GradientBoostingRegressor
+
+model_name = [
+       "Nearest Neighbors",
+       "ElasticNet",
+       "Decision tree",
+       "Random Forest",
+       "GradientBoosting",
+       "Gradient optimise",
+       "Forest optimise"]
+
+model_list = [                                                              
+       KNeighborsRegressor(2),                                                 
+       ElasticNet(random_state=0),                                             
+       DecisionTreeRegressor(),                                    
+       RandomForestRegressor(n_estimators=10),                                 
+       GradientBoostingRegressor(random_state=1, n_estimators=10),              
+   
+       GradientBoostingRegressor(random_state=2, n_estimators=100, max_features = 'auto',
+                                 loss = 'huber',
+                                 learning_rate = 0.1,
+                                 criterion =  'friedman_mse'),                                               
+    
+       RandomForestRegressor(n_estimators=140,   
+                             max_features= 'auto',
+                             random_state= 5,   
+                             criterion= 'friedman_mse',    
+                             max_depth= 50 )     
+       ]
+#comparer la performance des modèles dans model_list sur D.data
+print("la performance")
+data_df = comparePerformance(model_name, model_list, D, line = False)
+#"""
 ```
 
-
-
-
-    Text(0, 0.5, 'r2_metric')
-
+    Info file found : /home/sylviepeng/projects/truck/starting_kit/input_data/xporters_public.info
+    la performance
+    
+     Nearest Neighbors
+    r2_metric = 0.8343
+    Cross-validation tr: 0.69 (+/- 0.03)
+    Cross-validation va: 0.64 (+/- 0.02)
+    
+     ElasticNet
+    r2_metric = 0.1597
+    Cross-validation tr: -1.24 (+/- 5.61)
+    Cross-validation va: 0.16 (+/- 0.01)
+    
+     Decision tree
+    r2_metric = 0.9677
+    Cross-validation tr: 0.90 (+/- 0.01)
+    Cross-validation va: 0.90 (+/- 0.01)
+    
+     Random Forest
+    r2_metric = 0.9743
+    Cross-validation tr: 0.94 (+/- 0.00)
+    Cross-validation va: 0.94 (+/- 0.01)
+    
+     GradientBoosting
+    r2_metric = 0.7352
+    Cross-validation tr: 0.73 (+/- 0.00)
+    Cross-validation va: 0.74 (+/- 0.01)
+    
+     Gradient optimise
+    r2_metric = 0.9192
+    Cross-validation tr: 0.92 (+/- 0.01)
+    Cross-validation va: 0.92 (+/- 0.01)
+    
+     Forest optimise
+    r2_metric = 0.9784
+    Cross-validation tr: 0.94 (+/- 0.00)
+    Cross-validation va: 0.95 (+/- 0.01)
 
 
 
@@ -1047,15 +1019,18 @@ plt.ylabel("r2_metric")
 
 
 ```python
+#"""
 data_df[['perf_tr', 'perf_te']].plot.line()
-plt.ylabel("r2-metric")
-plt.xlabel(model_name)
+plt.xticks(rotation=270)
+plt.ylabel("metric-2")
+plt.title("performance plot by line")
+#"""
 ```
 
 
 
 
-    Text(0.5, 0, "['Nearest Neighbors', 'ElasticNet', 'Decision tree', 'Random Forest', 'GradientBoosting', 'Gradient optimise', 'Forest optimise']")
+    Text(0.5, 1.0, 'performance plot by line')
 
 
 
@@ -1077,7 +1052,7 @@ D = DataManager(data_name, data_dir, replace_missing=True)
 print(D)
 ```
 
-    Info file found : /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_public.info
+    Info file found : /home/sylviepeng/projects/truck/starting_kit/input_data/xporters_public.info
     DataManager : xporters
     info:
     	usage = Sample dataset Traffic Volume data
@@ -1166,8 +1141,8 @@ Y_hat_test = M.predict(D.data['X_test'])
 print(Y_hat_train)
 ```
 
-    [ 785.64333333 4118.41177209 3494.91       ... 5717.20800309 4061.73350641
-     5597.73734994]
+    [  785.64333333  4118.41177209  3494.91       ...,  5717.20800309
+      4061.73350641  5597.73734994]
 
 
 <div>
@@ -1185,9 +1160,9 @@ write(result_name + '_test.predict', Y_hat_test)
 !ls $result_name*
 ```
 
-    [31msample_result_submission/xporters_test.predict[m[m
-    [31msample_result_submission/xporters_train.predict[m[m
-    [31msample_result_submission/xporters_valid.predict[m[m
+    sample_result_submission/xporters_test.predict
+    sample_result_submission/xporters_train.predict
+    sample_result_submission/xporters_valid.predict
 
 
 <div>
@@ -1233,10 +1208,6 @@ plt.scatter(Y_train, Y_hat_train, alpha ='0.5', s = 1 )
 plt.show()
 ```
 
-
-![png](output_49_0.png)
-
-
 <div>
     <h3>Cross-validation performance</h3>
     <p>
@@ -1250,30 +1221,6 @@ from sklearn.model_selection import cross_val_score
 scores = cross_val_score(M, X_train, Y_train, cv=5, scoring=make_scorer(scoring_function))
 print('\nCV score (95 perc. CI): %0.2f (+/- %0.2f)' % (scores.mean(), scores.std() * 2))
 ```
-
-    FIT: dim(X)= [30850, 59]
-    FIT: dim(y)= [30850, 1]
-    PREDICT: dim(X)= [7713, 59]
-    PREDICT: dim(y)= [7713, 1]
-    FIT: dim(X)= [30850, 59]
-    FIT: dim(y)= [30850, 1]
-    PREDICT: dim(X)= [7713, 59]
-    PREDICT: dim(y)= [7713, 1]
-    FIT: dim(X)= [30850, 59]
-    FIT: dim(y)= [30850, 1]
-    PREDICT: dim(X)= [7713, 59]
-    PREDICT: dim(y)= [7713, 1]
-    FIT: dim(X)= [30851, 59]
-    FIT: dim(y)= [30851, 1]
-    PREDICT: dim(X)= [7712, 59]
-    PREDICT: dim(y)= [7712, 1]
-    FIT: dim(X)= [30851, 59]
-    FIT: dim(y)= [30851, 1]
-    PREDICT: dim(X)= [7712, 59]
-    PREDICT: dim(y)= [7712, 1]
-    
-    CV score (95 perc. CI): 0.95 (+/- 0.00)
-
 
 <div>
 <h1> Step 3: Making a submission </h1> 
@@ -1290,91 +1237,6 @@ Keep the sample code simple.
 !source activate python3; python $problem_dir/ingestion.py $data_dir $result_dir $problem_dir $model_dir
 ```
 
-    Could not find conda environment: python3
-    You can list all discoverable environments with `conda info --envs`.
-    
-    Using input_dir: /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data
-    Using output_dir: /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/sample_result_submission
-    Using program_dir: /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/ingestion_program
-    Using submission_dir: /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/sample_code_submission
-    
-    ========== Ingestion program version 6 ==========
-    
-    ************************************************
-    ******** Processing dataset Xporters ********
-    ************************************************
-    ========= Reading and converting data ==========
-    Info file found : /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_public.info
-    ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_feat.type
-    [+] Success in  0.00 sec
-    ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_train.data
-    Replace missing values by 0 (slow, sorry)
-    [+] Success in  0.43 sec
-    ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_train.solution
-    [+] Success in  0.06 sec
-    ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_valid.data
-    Replace missing values by 0 (slow, sorry)
-    [+] Success in  0.08 sec
-    ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_valid.solution
-    [+] Success in  0.00 sec
-    ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_test.data
-    Replace missing values by 0 (slow, sorry)
-    [+] Success in  0.06 sec
-    ========= Reading /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/input_data/xporters_test.solution
-    [+] Success in  0.00 sec
-    DataManager : xporters
-    info:
-    	usage = Sample dataset Traffic Volume data
-    	name = traffic
-    	task = regression
-    	target_type = Numerical
-    	feat_type = Numerical
-    	metric = r2_metric
-    	time_budget = 1200
-    	feat_num = 59
-    	target_num = 3
-    	label_num = 3
-    	train_num = 35
-    	valid_num = 35
-    	test_num = 35
-    	has_categorical = 0
-    	has_missing = 0
-    	is_sparse = 0
-    	format = dense
-    data:
-    	X_train = array(38563, 59)
-    	Y_train = array(38563,)
-    	X_valid = array(4820, 59)
-    	Y_valid = array(0,)
-    	X_test = array(4820, 59)
-    	Y_test = array(0,)
-    feat_type:	array(59,)
-    feat_idx:	array(59,)
-    
-    [+] Size of uploaded data  56.00 bytes
-    [+] Cumulated time budget (all tasks so far)  1200.00 sec
-    [+] Time budget for this task 1200.00 sec
-    [+] Remaining time after reading data 1199.33 sec
-    ======== Creating model ==========
-    **********************************************************
-    ****** Attempting to reload model to avoid training ******
-    **********************************************************
-    Model reloaded from: /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/sample_code_submission/xporters_model.pickle
-    [+] Model reloaded, no need to train!
-    PREDICT: dim(X)= [38563, 59]
-    PREDICT: dim(y)= [38563, 1]
-    PREDICT: dim(X)= [4820, 59]
-    PREDICT: dim(y)= [4820, 1]
-    PREDICT: dim(X)= [4820, 59]
-    PREDICT: dim(y)= [4820, 1]
-    [+] Prediction success, time spent so far  2.75 sec
-    ======== Saving results to: /Users/elsametivier/Desktop/mini-projet-python/truck-master/starting_kit/sample_result_submission
-    [+] Results saved, time spent so far  2.83 sec
-    [+] End cycle, time left 1197.17 sec
-    [+] Done
-    [+] Overall time spent  5.80 sec ::  Overall time budget 1200.00 sec
-
-
 <div>
 Also test the scoring program:
     </div>
@@ -1384,12 +1246,6 @@ Also test the scoring program:
 scoring_output_dir = 'scoring_output'
 !source activate python3; python $score_dir/score.py $data_dir $result_dir $scoring_output_dir
 ```
-
-    Could not find conda environment: python3
-    You can list all discoverable environments with `conda info --envs`.
-    
-    ======= Set 1 (Xporters_train): r2_metric(set1_score)=0.991777003139 =======
-
 
 <div>
     <h1> Preparing the submission </h1>
@@ -1409,11 +1265,6 @@ zipdir(sample_code_submission, model_dir)
 zipdir(sample_result_submission, result_dir)
 print("Submit one of these files:\n" + sample_code_submission + "\n" + sample_result_submission)
 ```
-
-    Submit one of these files:
-    ../sample_code_submission_20-03-23-12-01.zip
-    ../sample_result_submission_20-03-23-12-01.zip
-
 
 
 ```python
