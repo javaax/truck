@@ -1,3 +1,4 @@
+
 '''
 Sample predictive model.
 You must supply at least 4 methods:
@@ -28,7 +29,7 @@ class model (BaseEstimator):
         self.num_labels=1
         self.is_trained=False
        
-        self.preprocess = VarianceThreshold(threshold= 0.9*(1-0.9))
+        self.preprocess = VarianceThreshold(threshold= 0.75*(1-0.75))
         self.mod = RandomForestRegressor(max_depth= 50, random_state=5,  n_estimators=140,
                                          max_features = 'auto',criterion = 'friedman_mse') # Initalizing the model 
     
@@ -103,3 +104,4 @@ class model (BaseEstimator):
         
     if __name__ == "__main__":
         test()
+
